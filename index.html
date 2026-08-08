@@ -1791,39 +1791,40 @@
     width: 100%;
   }
 
-  /* ===== PAINEL DE ENTRADA ===== */
+ /* ===== PAINEL DE ENTRADA ===== */
 
-  #access-gate .register-box {
-    background: rgba(10, 12, 18, 0.82);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+#access-gate .register-box {
+  background: rgba(10, 12, 18, 0.38);
 
-    border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 
-    box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.55),
-      0 0 40px rgba(180, 140, 50, 0.08);
+  border: 1px solid rgba(212, 160, 23, 0.35);
 
-    border-radius: 14px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.45),
+    0 0 30px rgba(212, 160, 23, 0.08);
+
+  border-radius: 14px;
+}
+
+/* ===== ANIMAÇÃO DO PAINEL ===== */
+
+#access-gate .register-box {
+  animation: crydanGateEnter 0.7s ease-out;
+}
+
+@keyframes crydanGateEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
   }
 
-  /* ===== ANIMAÇÃO DO PAINEL ===== */
-
-  #access-gate .register-box {
-    animation: crydanGateEnter 0.7s ease-out;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
-
-  @keyframes crydanGateEnter {
-    from {
-      opacity: 0;
-      transform: translateY(20px) scale(0.97);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
+}
   
 </style>
 </head>
