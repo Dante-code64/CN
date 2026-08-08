@@ -8969,9 +8969,6 @@ let musicTab = 'search';
 let musicSearchResults = [];
 let currentSong = null;
 
-function getYoutubeApiKey() { return (G && G.ytApiKey) ? G.ytApiKey : (APP_SETTINGS['youtube_api_key'] || ''); }
-function setYoutubeApiKey(key) { if (!G) G = {}; G.ytApiKey = key.trim(); saveGame(); }
-
 function loadYoutubeIframeApi(cb) {
   if (ytApiReady && window.YT && window.YT.Player) { cb(); return; }
   window._ytApiCallbacks = window._ytApiCallbacks || [];
