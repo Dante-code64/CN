@@ -1,7 +1,7 @@
 {
-  "name": "crydan-rpg",
+  "name": "Crydan-RPG",
   "version": "2.0.0",
-  "description": "Crydan - Sistema Completo de RPG com Supabase",
+  "description": "Crydan - Sistema Completo de RPG Com os Amigos",
   "type": "module",
   "scripts": {
     "dev": "vite",
