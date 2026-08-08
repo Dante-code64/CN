@@ -8962,6 +8962,13 @@ async function deletePost(id) {
 // ══════════════════════════════════════════
 //   MÚSICAS (busca via YouTube Data API + player embutido no app)
 // ══════════════════════════════════════════
+
+    const YOUTUBE_API_KEY = 'AIzaSyB80VvyDYu6YacsiMxx313um5Z5E7q2ydk';
+    const YOUTUBE_API_KEY = 'AIzaSyABmr4B8MarejtbEdVm7y-Ltc3iKHobP-A';
+    const YOUTUBE_API_KEY = 'AIzaSyBokrTwO6wk6sxPGYJCz0PAE7nnvcdSr1g';
+    const YOUTUBE_API_KEY = 'AIzaSyA1Jw56A-3G-wFwpYhp-V_Yj5V6LpjsomA';
+    const YOUTUBE_API_KEY = 'AIzaSyABIz25ANQjvt4C4zbS-GIfujNBpfEYV6c';
+  
 let ytPlayer = null;
 let ytApiReady = false;
 let ytApiLoading = false;
@@ -9014,33 +9021,8 @@ function ensureYtPlayer(videoId, cb) {
     }
   });
 }
-
-function renderMusicPanel() {
-  const key = getYoutubeApiKey();
-  const setupCard = document.getElementById('music-setup-card');
-  if (setupCard) {
-    setupCard.style.display = key ? 'none' : 'block';
-    if (!key) {
-      setupCard.innerHTML = `
-        <div class="card-title">🔑 Configurar busca de músicas</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5">
-          Para buscar e tocar músicas de verdade dentro do app (via YouTube), você precisa de uma chave gratuita da <b>YouTube Data API v3</b>, criada no Google Cloud Console. É grátis e leva poucos minutos.
-        </div>
-        <div class="form-group"><input class="form-input" id="yt-api-key-input" placeholder="Cole sua chave de API do YouTube aqui"></div>
-        <button class="btn btn-primary" onclick="saveYoutubeApiKey()">💾 Salvar Chave e Começar a Buscar</button>
-      `;
-    }
-  }
+  
   renderMusicResults();
-}
-
-function saveYoutubeApiKey() {
-  const input = document.getElementById('yt-api-key-input');
-  const key = input ? input.value.trim() : '';
-  if (!key) return notify('error', 'Cole uma chave de API válida.');
-  setYoutubeApiKey(key);
-  notify('success', '🔑 Chave salva! Já pode buscar músicas.');
-  renderMusicPanel();
 }
 
 function switchMusicTab(tab) {
@@ -9056,8 +9038,11 @@ async function searchMusic() {
   const input = document.getElementById('music-search-input');
   const q = input ? input.value.trim() : '';
   if (!q) return;
-  const key = getYoutubeApiKey();
-  if (!key) return notify('error', 'Configure sua chave de API do YouTube primeiro.');
+  const key = AIzaSyB80VvyDYu6YacsiMxx313um5Z5E7q2ydk;
+  const key = AIzaSyABmr4B8MarejtbEdVm7y-Ltc3iKHobP-A;
+  const key = AIzaSyBokrTwO6wk6sxPGYJCz0PAE7nnvcdSr1g;
+  const key = AIzaSyA1Jw56A-3G-wFwpYhp-V_Yj5V6LpjsomA;
+  const key = AIzaSyABIz25ANQjvt4C4zbS-GIfujNBpfEYV6c;
   switchMusicTab('search');
   const results = document.getElementById('music-results');
   results.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">🔎 Buscando...</div>';
