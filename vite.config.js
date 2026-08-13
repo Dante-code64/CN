@@ -6,7 +6,11 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      input: 'index.html'
+      input: {
+        main: 'index.html',
+        terms: 'terms.html',
+        privacy: 'privacy.html',
+      }
     }
   },
   server: {
