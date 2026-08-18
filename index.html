@@ -2668,10 +2668,10 @@ body.compact-mode .stat-card, body.compact-mode .adm-stat-card { padding: 10px !
               <input class="form-input" id="reg-username" placeholder="seu_usuario" maxlength="30" oninput="regCheckUsername()" style="padding-left:24px">
               <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--crydan-text-muted);font-size:13px">@</span>
             </div>
-            <div id="reg-username-hint" style="font-size:11px;margin-top:4px;min-height:15px;color:var(--crydan-text-muted)">Único, como no Instagram — é como as pessoas vão te encontrar.</div>
+            <div id="reg-username-hint" style="font-size:11px;margin-top:4px;min-height:15px;color:var(--crydan-text-muted)">Único — é como as pessoas vão te encontrar.</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Idade (9–101 anos)</label>
+            <label class="form-label">Idade ()</label>
             <input class="form-input" id="reg-age" type="number" min="9" max="101" placeholder="Sua idade" oninput="regUpdateIdentity()">
           </div>
           <div class="form-group">
@@ -4976,7 +4976,7 @@ function handleMyAvatarClick() {
 function openStoryComposer() {
   _storyComposerColor = myStoryCache ? (myStoryCache.bg_color || STORY_COLORS[0]) : STORY_COLORS[0];
   showModal('📝 Postar Recado', `
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Fica visível por 24 horas em cima da sua foto, como no Instagram.</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Fica visível por 24 horas em cima da sua foto.</div>
     <div class="story-composer-preview" id="story-composer-preview" style="background:${_storyComposerColor}">
       <span id="story-composer-preview-text">${escapeHtml(myStoryCache?.text || 'Escreva algo...')}</span>
     </div>
