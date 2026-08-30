@@ -1,0 +1,65 @@
+-- Snapshot extraído de produção em 30/08/2026. DOCUMENTAÇÃO — estas policies já existem
+-- exatamente assim no banco. Não aplicar isto como migração; é só o retrato do estado atual
+-- para revisão de código.
+
+-- ══════════════════════════════════════════════════════════════════
+-- Tabela: public.saves  (guarda G inteiro como JSONB em `data`)
+-- ══════════════════════════════════════════════════════════════════
+--
+-- DELETE — "Users can delete own save"
+--   USING: auth.uid() = id
+--
+-- INSERT — "Users can insert own save"
+--   WITH CHECK: auth.uid() = id
+--
+-- SELECT — "saves_select_own_or_admin"
+--   USING: is_admin() OR auth.uid() = id
+--
+-- UPDATE — "saves_update_own_or_admin"
+--   USING: is_admin() OR auth.uid() = id
+--   WITH CHECK: (nenhum)
+--
+-- ⚠️ ACHADO CRÍTICO: a policy de UPDATE não tem WITH CHECK. Isso significa que qualquer
+-- usuário autenticado pode, direto pela API REST/JS (sem precisar passar pelo app), fazer:
+--
+--   supabase.from('saves').update({ data: { ...tudo, wallet: 999999999 } }).eq('id', meuId)
+--
+-- e a escrita é aceita sem qualquer validação de servidor. Como send_pix() (ver
+-- /supabase/functions/20_economy.sql) lê o saldo exatamente de `saves.data->>'wallet'`,
+-- isso é uma rota comprovada de criação de dinheiro do nada, com "lavagem" via PIX real
+-- para outra conta (fica registrado em pix_transfers como se fosse uma transferência legítima).
+--
+-- Correção proposta (não aplicada ainda): (a) parar de guardar wallet/xp/level/inventário
+-- dentro de `saves.data` — mover para colunas próprias mutáveis só por RPC; ou, como medida
+-- de contenção imediata mais barata, (b) trigger BEFORE UPDATE em `saves` que rejeita
+-- qualquer alteração aos campos financeiros/XP do JSON quando quem está escrevendo não é
+-- uma função SECURITY DEFINER (ex.: checar current_setting em um flag de sessão setado só
+-- pelas RPCs). A opção (a) é a correta a longo prazo; (b) é um remendo, mas resolve mais rápido
+-- se for necessário conter aberto.
+
+-- ══════════════════════════════════════════════════════════════════
+-- Tabela: public.profiles  (cópia paralela: wallet, bank, level, crystals, battles, ...)
+-- ══════════════════════════════════════════════════════════════════
+--
+-- DELETE — "profiles_admin_delete_all"
+--   USING: is_admin()
+--
+-- INSERT — "profiles_insert_own"
+--   WITH CHECK: id = auth.uid()
+--
+-- SELECT — "profiles_select_all"
+--   USING: auth.role() = 'authenticated'   -- qualquer usuário logado lê qualquer perfil
+--
+-- UPDATE — "profiles_update_own_or_admin"
+--   USING: is_admin() OR auth.uid() = id
+--   WITH CHECK: (nenhum)
+--
+-- ⚠️ MESMO PROBLEMA: sem WITH CHECK, `wallet`, `bank`, `level`, `crystals`, `battles`,
+-- `quests_completed` em `profiles` também são sobrescrevíveis livremente pelo próprio
+-- usuário via UPDATE direto — não só via syncProfile() no index.html, que pelo menos aplica
+-- Math.floor() no cliente (proteção cosmética, não real, já que pode ser ignorada chamando
+-- a API diretamente).
+--
+-- `crystals` é a única dessas colunas cuja escrita legítima já passa por RPC
+-- (admin_grant_crystals, approve_crystal_purchase) — mas a RLS permissiva de UPDATE ainda
+-- permite que o próprio dono da conta sobrescreva `crystals` por fora dessas RPCs.
