@@ -1,0 +1,36 @@
+diff --git a/index.html b/index.html
+index 139037e..307e3c8 100644
+--- a/index.html
++++ b/index.html
+@@ -10797,7 +10797,13 @@ async function renderBannerAnimShop() {
+   const current = G.bannerAnim || 'none';
+   const lottieCat = await getLottieCatalog();
+   const lottieList = lottieCat.filter(l => l.category === 'banner').map(l => ({ id: 'lottie:' + l.id, name: '✨ ' + l.name, lottieUrl: l.url }));
+-  const list = [{ id: 'none', name: 'Nenhuma' }, ...BANNER_ANIMS, ...lottieList];
++  // As animações antigas (feitas só com CSS/tsParticles) saíram da loja — só oferecemos
++  // animações reais (vídeo/Lottie) daqui pra frente. Se o jogador já tinha uma das antigas
++  // equipada, ela continua aparecendo (marcada como "clássica") pra não sumir do nada.
++  const legacyEquipped = (current !== 'none' && !current.startsWith('lottie:'))
++    ? BANNER_ANIMS.filter(a => a.id === current).map(a => ({ ...a, name: a.name + ' (clássica)' }))
++    : [];
++  const list = [{ id: 'none', name: 'Nenhuma' }, ...lottieList, ...legacyEquipped];
+   el.innerHTML = list.map(a => {
+     const equipped = current === a.id;
+     return `<div class="frame-shop-card">
+@@ -10895,7 +10901,15 @@ async function renderAvatarFrameShop() {
+   const search = (document.getElementById('frame-shop-search')?.value || '').trim().toLowerCase();
+   const lottieCat = await getLottieCatalog();
+   const lottieFrames = lottieCat.filter(l => l.category === 'avatar').map(l => ({ id: 'lottie:' + l.id, name: '✨ ' + l.name, cat: 'lottie', lottieUrl: l.url, url: l.url, kind: l.kind, cost: 0, minLevel: 1 }));
+-  let list = [...AVATAR_FRAMES.filter(f => f.id !== 'none'), ...lottieFrames];
++  // As molduras antigas (CSS/tsParticles) saíram da loja de novas escolhas — só ficam
++  // "custom_image"/"ring_custom" (conteúdo real do próprio jogador) e as novas Lottie/vídeo.
++  // Quem já tinha uma moldura antiga equipada continua vendo ela na lista, como "clássica".
++  const equippedId = G.avatarFrame || 'none';
++  const realFrames = AVATAR_FRAMES.filter(f => f.customImage || f.customColor);
++  const legacyEquippedFrame = (equippedId !== 'none' && !equippedId.startsWith('lottie:') && !realFrames.some(f => f.id === equippedId))
++    ? AVATAR_FRAMES.filter(f => f.id === equippedId).map(f => ({ ...f, name: f.name + ' (clássica)' }))
++    : [];
++  let list = [...realFrames, ...lottieFrames, ...legacyEquippedFrame];
+   if (frameShopCategory !== 'todas') list = list.filter(f => f.cat === frameShopCategory);
+   if (search) list = list.filter(f => f.name.toLowerCase().includes(search));
+ 
