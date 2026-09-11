@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, safeMediaUrl } from './utils/escapeHtml.js';
 import { timeAgo, formatCry, formatLastSeen, _stripAt } from './utils/format.js';
+import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE } from './guild/constants.js';
 
 // Ponto de entrada único do Crydan -- gerado a partir da fusão dos 3 blocos
 // <script> (clássicos) que antes existiam soltos no index.html.
@@ -4210,21 +4211,11 @@ async function openGuildProfileByTag(tag) {
 // funções RPC no Supabase (guild_*), nunca por INSERT/UPDATE direto —
 // então mesmo alguém mexendo no DevTools não consegue se autopromover,
 // inflar XP ou sacar do cofre sem permissão. Ver guild-setup.sql.
-const GUILD_ROLE_LABELS = { leader: '👑 Líder', vice_leader: '⚜️ Vice-líder', officer: '🛡️ Oficial', member: '⚔️ Membro' };
-const GUILD_ROLE_RANK = { leader: 4, vice_leader: 3, officer: 2, member: 1 };
-const GUILD_PRIVACY_LABELS = { open: '🔓 Aberta', request: '📝 Solicitação', closed: '🔒 Fechada' };
-const GUILD_ACHIEVEMENTS_INFO = {
-  foundation: { icon: '🏰', name: 'Fundação', desc: 'Guilda fundada' },
-  family: { icon: '👥', name: 'Família', desc: 'Alcançou 25 membros' },
-  legend: { icon: '🌑', name: 'Lenda', desc: 'Alcançou nível 50' },
-};
-
 let guildsCache = [];
 let myGuildMembership = null; // { guild_id, role }
 let myPendingGuildRequests = []; // guild_ids que eu já solicitei entrada
 let guildRankingSort = 'xp';
 let guildRankingPage = 0;
-const GUILD_PAGE_SIZE = 20;
 
 function guildTagHtml(g) {
   if (!g || !g.tag) return '';
