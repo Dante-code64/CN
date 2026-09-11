@@ -14,3 +14,9 @@ export const GUILD_ACHIEVEMENTS_INFO = {
   legend: { icon: '🌑', name: 'Lenda', desc: 'Alcançou nível 50' },
 };
 export const GUILD_PAGE_SIZE = 20;
+
+export const GUILDS_DEFAULT = [
+  { id:'g1', name:'Ordem da Chama', emblem:'🔥', desc:'Guerreiros do fogo sagrado', members:['Sistema'], level:5 },
+  { id:'g2', name:'Sombras Arcanas',emblem:'🌙', desc:'Magos das trevas eternas',  members:['Sistema'], level:3 },
+  { id:'g3', name:'Escudo Dourado', emblem:'🛡️', desc:'Defensores do reino',       members:['Sistema'], level:4 },
+];
