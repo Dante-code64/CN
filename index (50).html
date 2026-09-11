@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crydan</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js" defer></script>
+<script type="module" src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.4/dist/dotlottie-wc.js"></script>
+<meta name="theme-color" content="#0a0710">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+<script type="module" src="/src/main.js"></script>
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+
+<body>
+<div class="cr-atmosphere" aria-hidden="true">
+  <div class="cr-vignette"></div>
+  <div class="cr-embers">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span>
+  </div>
+</div>
+
+<!-- ACCESS GATE -->
+<div id="access-gate">
+  <div class="register-box" id="gate-select-box" style="display:none">
+    <div style="font-size:32px;margin-bottom:10px">🛡️</div>
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold);margin-bottom:4px">Acesso de Administrador Detectado</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:24px">Sua conta tem permissão de administração. Como deseja entrar agora?</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="gate-option-btn" onclick="chooseAccessMode('player')">
+        <span class="gate-icon">🎮</span>
+        <div><div>Entrar como Jogador</div><div class="gate-sub">Acesse o mundo de Crydan e sua aventura</div></div>
+      </div>
+      <div class="gate-option-btn gate-admin" onclick="chooseAccessMode('admin')">
+        <span class="gate-icon">🛡️</span>
+        <div><div>Área de Administração</div><div class="gate-sub">Painel de controle e gestão do Crydan</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="register-box" id="gate-admin-box" style="display:none">
+    <div style="font-size:40px;margin-bottom:10px">🛡️</div>
+    <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--red);margin-bottom:6px">ÁREA RESTRITA</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px">O acesso de administrador agora usa a mesma conta (e-mail/senha) do Crydan — só que precisa estar marcada como admin.</div>
+    <div id="gate-admin-status" style="font-size:13px;color:var(--text2);margin-bottom:10px">Verificando permissão...</div>
+    <div id="gate-admin-error" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+    <div style="margin-top:14px;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline" onclick="backToGateSelect()">← Voltar</div>
+  </div>
+  <div class="register-box" id="gate-connection-error-box" style="display:none">
+    <div style="font-size:40px;margin-bottom:10px">⚠️</div>
+    <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--red);margin-bottom:6px">SEM CONEXÃO</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Não foi possível falar com o servidor de Crydan agora. Verifique sua internet e tente de novo em instantes.</div>
+    <div id="gate-connection-error-detail" style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:16px;text-align:left;word-break:break-word;display:none"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="backToGateSelect()">🔄 Tentar novamente</button>
+  </div>
+</div>
+
+<!-- BANNED SCREEN -->
+<div id="banned-screen">
+  <div class="register-box" style="border-color:var(--red)">
+    <div style="font-size:48px;margin-bottom:12px">🚫</div>
+    <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--red);margin-bottom:10px">CONTA BANIDA</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Sua conta foi banida permanentemente pela administração de Crydan.</div>
+    <div id="banned-reason-text" style="font-size:12px;color:var(--text3);margin-bottom:16px"></div>
+    <div style="text-align:left;width:100%;border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Fale com a administração:</div>
+      <div id="support-thread-banned" style="max-height:150px;overflow-y:auto;margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px">
+        <input class="form-input" id="support-msg-banned" placeholder="Escreva sua mensagem...">
+        <button class="btn btn-sm btn-primary" onclick="submitSupportMessage('banned')">Enviar</button>
+      </div>
+    </div>
+    <button class="btn" style="width:100%" onclick="location.reload()">← Voltar ao início</button>
+  </div>
+</div>
+
+<div id="suspended-screen">
+  <div class="register-box" style="border-color:var(--gold)">
+    <div style="font-size:48px;margin-bottom:12px">⏳</div>
+    <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--gold2);margin-bottom:10px">CONTA SUSPENSA</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Sua conta está temporariamente suspensa.</div>
+    <div id="suspended-until-text" style="font-size:13px;color:var(--gold2);margin-bottom:6px"></div>
+    <div id="suspended-reason-text" style="font-size:12px;color:var(--text3);margin-bottom:16px"></div>
+    <div style="text-align:left;width:100%;border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Fale com a administração:</div>
+      <div id="support-thread-suspended" style="max-height:150px;overflow-y:auto;margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px">
+        <input class="form-input" id="support-msg-suspended" placeholder="Escreva sua mensagem...">
+        <button class="btn btn-sm btn-primary" onclick="submitSupportMessage('suspended')">Enviar</button>
+      </div>
+    </div>
+    <button class="btn" style="width:100%" onclick="location.reload()">← Voltar ao início</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loading-logo">⚔ CRYDAN</div>
+  <div style="font-size:12px;color:var(--text3);letter-spacing:3px;font-family:'JetBrains Mono',monospace">RPG Com os Amigos</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+  <div class="loading-text" id="loading-msg">INICIALIZANDO SISTEMA...</div>
+</div>
+
+<!-- REGISTER -->
+<div id="register-screen">
+  <div class="reg-wizard">
+    <!-- Cabeçalho + indicador de etapas -->
+    <div class="reg-header">
+      <div class="reg-header-title">
+        <span style="font-size:28px">⚔️</span>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--gold2)">CRYDAN</div>
+          <div style="font-size:12px;color:var(--text3)">Crie seu personagem</div>
+        </div>
+      </div>
+      <div class="reg-steps" id="reg-steps">
+        <div class="reg-step" data-step="1"><span class="reg-step-dot">1</span><span class="reg-step-label">Identidade</span></div>
+        <div class="reg-step-line"></div>
+        <div class="reg-step" data-step="2"><span class="reg-step-dot">2</span><span class="reg-step-label">Avatar</span></div>
+        <div class="reg-step-line"></div>
+        <div class="reg-step" data-step="3"><span class="reg-step-dot">3</span><span class="reg-step-label">Banner</span></div>
+        <div class="reg-step-line"></div>
+        <div class="reg-step" data-step="4"><span class="reg-step-dot">4</span><span class="reg-step-label">Revisão</span></div>
+      </div>
+    </div>
+
+    <div class="reg-body">
+      <!-- Coluna do formulário (muda por etapa) -->
+      <div class="reg-form-col">
+
+        <!-- ETAPA 1: IDENTIDADE -->
+        <div class="reg-panel" data-panel="1">
+          <div class="form-group">
+            <label class="form-label">Nome de Aventureiro</label>
+            <input class="form-input" id="reg-name" placeholder="Ex: Drako, Lyra, Zephyr..." maxlength="20" oninput="regUpdateIdentity()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome de Usuário (@)</label>
+            <div style="position:relative">
+              <input class="form-input" id="reg-username" placeholder="seu_usuario" maxlength="30" oninput="regCheckUsername()" style="padding-left:24px">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--crydan-text-muted);font-size:13px">@</span>
+            </div>
+            <div id="reg-username-hint" style="font-size:11px;margin-top:4px;min-height:15px;color:var(--crydan-text-muted)">Único, como no Instagram — é como as pessoas vão te encontrar.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Idade (9–101 anos)</label>
+            <input class="form-input" id="reg-age" type="number" min="9" max="101" placeholder="Sua idade" oninput="regUpdateIdentity()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Classe Inicial</label>
+            <div class="reg-class-grid" id="reg-class-grid"></div>
+          </div>
+        </div>
+
+        <!-- ETAPA 2: AVATAR -->
+        <div class="reg-panel" data-panel="2" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Foto de Perfil <span style="color:var(--text3);font-weight:400">(opcional)</span></label>
+            <input type="file" id="reg-avatar-file" accept="image/*" style="display:none" onchange="regHandleAvatarUpload(event)">
+            <div style="display:flex;gap:8px">
+              <button class="btn" style="flex:1" onclick="document.getElementById('reg-avatar-file').click()">📁 Enviar foto</button>
+              <button class="btn btn-danger" id="reg-avatar-remove-btn" style="display:none" onclick="regRemoveAvatarPhoto()">✕ Remover</button>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Máx. 3MB. Sem foto, usamos o emoji da sua classe.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Moldura do Avatar <span style="color:var(--text3);font-weight:400">— todas grátis pra começar</span></label>
+            <div class="reg-cat-tabs" id="reg-frame-cats"></div>
+            <div class="reg-frame-grid" id="reg-frame-grid"></div>
+          </div>
+        </div>
+
+        <!-- ETAPA 3: BANNER -->
+        <div class="reg-panel" data-panel="3" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Imagem do Banner <span style="color:var(--text3);font-weight:400">(opcional)</span></label>
+            <input type="file" id="reg-banner-file" accept="image/*" style="display:none" onchange="regHandleBannerUpload(event)">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="btn" style="flex:1" onclick="document.getElementById('reg-banner-file').click()">📁 Enviar imagem</button>
+              <button class="btn btn-danger" id="reg-banner-remove-btn" style="display:none" onclick="regRemoveBannerImage()">✕ Remover</button>
+            </div>
+            <div class="reg-preset-row" id="reg-banner-presets"></div>
+          </div>
+          <div class="form-group" id="reg-banner-adjust-group" style="display:none">
+            <label class="form-label">Posição e Zoom</label>
+            <input type="range" min="0" max="100" id="reg-banner-x" value="50" oninput="regUpdateBannerAdjust()">
+            <input type="range" min="0" max="100" id="reg-banner-y" value="50" oninput="regUpdateBannerAdjust()" style="margin-top:4px">
+            <input type="range" min="100" max="250" id="reg-banner-zoom" value="100" oninput="regUpdateBannerAdjust()" style="margin-top:4px">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Animação do Banner</label>
+            <div class="reg-banner-anim-grid" id="reg-banner-anims"></div>
+          </div>
+        </div>
+
+        <!-- ETAPA 4: REVISÃO -->
+        <div class="reg-panel" data-panel="4" style="display:none">
+          <div style="font-size:13px;color:var(--text2);line-height:1.7">
+            Tudo pronto! Confira como seu perfil vai ficar ao lado e, se estiver do seu jeito, clique em
+            <b style="color:var(--gold2)">Criar Personagem</b>. Você pode mudar qualquer coisa depois, a qualquer momento, nas configurações do seu perfil.
+          </div>
+        </div>
+
+        <div id="reg-error" style="color:var(--red);font-size:12px;margin:10px 0;display:none"></div>
+
+        <div class="reg-nav">
+          <button class="btn press-fx" id="reg-btn-back" onclick="regGoStep(regState.step - 1)" style="visibility:hidden">← Voltar</button>
+          <button class="btn btn-primary press-fx" id="reg-btn-next" onclick="regHandleNextClick()">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- Coluna de pré-visualização ao vivo -->
+      <div class="reg-preview-col">
+        <div class="reg-preview-card">
+          <div class="profile-banner" id="reg-preview-banner" style="height:120px">
+            <div class="banner-fx-slot" id="reg-preview-banner-fx"></div>
+          </div>
+          <div class="reg-preview-avatar-wrap">
+            <div class="avatar-frame-wrap" id="reg-preview-frame-wrap">
+              <div class="frame-svg-slot"></div>
+              <div class="reg-preview-avatar" id="reg-preview-avatar">⚔️</div>
+            </div>
+          </div>
+          <div class="reg-preview-info">
+            <div class="reg-preview-name" id="reg-preview-name">Novo Aventureiro</div>
+            <div class="reg-preview-sub" id="reg-preview-sub">Nível 1 · Recruta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notifications"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="header" style="display:none">
+  <div class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir menu" role="button" tabindex="0" aria-label="Abrir menu de navegação" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMobileSidebar();}">☰</div>
+  <div class="logo-icon">
+    <svg viewBox="0 0 64 64" width="100%" height="100%">
+      <defs>
+        <linearGradient id="logoGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f0c040"/>
+          <stop offset="100%" stop-color="#a9780f"/>
+        </linearGradient>
+      </defs>
+      <path d="M32 4 L56 14 L56 32 C56 46 46 56 32 60 C18 56 8 46 8 32 L8 14 Z" fill="url(#logoGoldGrad)" stroke="#3a2a05" stroke-width="2"/>
+      <path d="M32 4 L56 14 L56 32 C56 46 46 56 32 60 Z" fill="#000" opacity="0.12"/>
+      <path d="M20 46 Q32 28 44 46" fill="none" stroke="#3a2a05" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 12 L36 30 L32 52 L28 30 Z" fill="#3a2a05"/>
+      <path d="M22 26 L42 26 L38 31 L26 31 Z" fill="#3a2a05"/>
+      <circle cx="32" cy="12" r="3.5" fill="#3a2a05"/>
+    </svg>
+  </div>
+  <div>
+    <div class="logo-text">Crydan</div>
+    <div class="logo-sub">RPG Com os Amigos</div>
+  </div>
+  <div class="header-right">
+    <div class="header-search-btn" onclick="openGlobalProfileSearch()" title="Buscar pessoas" role="button" tabindex="0" aria-label="Buscar pessoas por @usuário" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGlobalProfileSearch();}">
+      <span>🔍</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2)">Buscar</span>
+    </div>
+    <input type="file" id="banner-file-input" accept="image/*" style="display:none" onchange="handleBannerFileSelect(event)">
+    <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarFileSelect(event)">
+    <div class="theme-toggle" id="theme-toggle-btn" title="Alternar tema claro/escuro" style="gap:6px">
+      <dotlottie-wc id="theme-toggle-lottie" src="/Toogle.lottie" style="width:30px;height:30px;cursor:pointer" autoplay></dotlottie-wc>
+      <span id="theme-label" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2)">Escuro</span>
+    </div>
+    <div id="hdr-cry" style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold2)">✦ 0 Cry</div>
+    <div id="hdr-crystals" onclick="navigate('crystar')" style="cursor:pointer;font-family:'Cinzel',serif;font-size:13px;color:#7fd8f0;display:flex;align-items:center;gap:4px" title="Crystar — moeda premium">💎 0</div>
+    <div id="hdr-level" class="badge badge-purple">Nv.1</div>
+    <div class="notif-bell-wrap">
+      <div class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifDropdown()" title="Notificações" role="button" tabindex="0" aria-label="Notificações" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNotifDropdown();}">
+        <span class="nav-icon" data-icon="bell" style="width:18px;height:18px"></span>
+        <span id="notif-badge" class="notif-badge" style="display:none">0</span>
+      </div>
+      <div class="notif-dropdown" id="notif-dropdown">
+        <div class="notif-dropdown-header">
+          <span>📣 Notificações</span>
+          <span class="notif-mark-all" id="notif-push-toggle" onclick="enablePushNotifications()" style="margin-right:10px">🔔 Ativar no dispositivo</span>
+          <span class="notif-mark-all" onclick="markAllNotificationsRead()">Marcar todas como lidas</span>
+        </div>
+        <div class="notif-dropdown-list" id="notif-dropdown-list">
+          <div class="notif-empty">Carregando...</div>
+        </div>
+      </div>
+    </div>
+    <div id="user-badge" onclick="navigate('perfil')">
+      <div class="user-avatar" id="hdr-avatar">?</div>
+      <span id="user-name">Aventureiro</span>
+    </div>
+    <button class="btn-sm btn-danger" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- BODY -->
+<div id="app-body" style="display:none">
+  <div class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">Principal <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item active" role="button" tabindex="0" aria-current="page" onclick="navigate('inicio')"><span class="nav-icon" data-icon="inicio"></span>Início</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('perfil')"><span class="nav-icon" data-icon="perfil"></span>Perfil</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('meupersonagem')"><span class="nav-icon" data-icon="meupersonagem"></span>Meu Personagem</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('inventario')"><span class="nav-icon" data-icon="inventario"></span>Inventário</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('galeria')"><span class="nav-icon" data-icon="galeria"></span>Galeria (Avatar/Moldura)</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('conquistas')"><span class="nav-icon" data-icon="conquistas"></span>Conquistas</div>
+      </div>
+    </div>
+    <div class="sidebar-section collapsed">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">RPG Medieval <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('batalha')"><span class="nav-icon" data-icon="batalha"></span>Batalha</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('missoes')"><span class="nav-icon" data-icon="missoes"></span>Missões</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('guildas')"><span class="nav-icon" data-icon="guildas"></span>Guildas</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('boss')"><span class="nav-icon" data-icon="boss"></span>Chefes</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('mapa')"><span class="nav-icon" data-icon="mapa"></span>Mapa</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('coleta')"><span class="nav-icon" data-icon="coleta"></span>Coleta</div>
+      </div>
+    </div>
+    <div class="sidebar-section collapsed">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">Economia <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('banco')"><span class="nav-icon" data-icon="banco"></span>Banco</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('mercado')"><span class="nav-icon" data-icon="mercado"></span>Mercado</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('crystar')"><span class="nav-icon">💎</span>Crystar</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('casas')"><span class="nav-icon" data-icon="casas"></span>Casas</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('empresas')"><span class="nav-icon" data-icon="empresas"></span>Empresas</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('empregos')"><span class="nav-icon" data-icon="empregos"></span>Empregos</div>
+      </div>
+    </div>
+    <div class="sidebar-section collapsed">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">Social <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('conversas')"><span class="nav-icon" data-icon="conversas"></span>Conversas</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('amigos')"><span class="nav-icon" data-icon="amigos"></span>Amigos</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('publicacoes')"><span class="nav-icon" data-icon="publicacoes"></span>Publicações</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('casamento')"><span class="nav-icon" data-icon="casamento"></span>Casamento</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('ranking')"><span class="nav-icon" data-icon="ranking"></span>Ranking</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('eventos')"><span class="nav-icon" data-icon="eventos"></span>Eventos</div>
+      </div>
+    </div>
+    <div class="sidebar-section collapsed">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">Entretenimento <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('musicas')"><span class="nav-icon" data-icon="musicas"></span>Músicas</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('jogos')"><span class="nav-icon" data-icon="jogos"></span>Central de Jogos</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('iacompanheira')"><span class="nav-icon" data-icon="iacompanheira"></span>IA Companheira</div>
+      </div>
+    </div>
+    <div class="sidebar-section collapsed">
+      <div class="sidebar-title" onclick="toggleSidebarSection(this)">Sistema <span class="sidebar-chevron">▾</span></div>
+      <div class="sidebar-section-items">
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('feedback')"><span class="nav-icon" data-icon="feedback"></span>Feedback</div>
+        <div class="nav-item" role="button" tabindex="0" onclick="navigate('config')"><span class="nav-icon" data-icon="config"></span>Config</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV INFERIOR MOBILE (estilo Instagram/WhatsApp — 6 categorias, toca pra abrir) -->
+  <div id="mobile-category-sheet"></div>
+  <div id="mobile-bottom-nav">
+    <div class="mobile-cat-item active" data-cat="principal" role="button" tabindex="0" aria-current="page" onclick="openMobileCategorySheet('principal')"><span class="nav-icon" data-icon="inicio"></span><span class="mobile-nav-label">Principal</span></div>
+    <div class="mobile-cat-item" data-cat="rpg" role="button" tabindex="0" onclick="openMobileCategorySheet('rpg')"><span class="nav-icon" data-icon="batalha"></span><span class="mobile-nav-label">RPG Medieval</span></div>
+    <div class="mobile-cat-item" data-cat="economia" role="button" tabindex="0" onclick="openMobileCategorySheet('economia')"><span class="nav-icon" data-icon="moedas"></span><span class="mobile-nav-label">Economia</span></div>
+    <div class="mobile-cat-item" data-cat="social" role="button" tabindex="0" onclick="openMobileCategorySheet('social')"><span class="nav-icon" data-icon="amigos"></span><span class="mobile-nav-label">Social</span></div>
+    <div class="mobile-cat-item" data-cat="entretenimento" role="button" tabindex="0" onclick="openMobileCategorySheet('entretenimento')"><span class="nav-icon" data-icon="pipoca"></span><span class="mobile-nav-label">Entretenimento</span></div>
+    <div class="mobile-cat-item" data-cat="sistema" role="button" tabindex="0" onclick="openMobileCategorySheet('sistema')"><span class="nav-icon" data-icon="config"></span><span class="mobile-nav-label">Sistema</span></div>
+  </div>
+  <div id="main">
+
+    <!-- INÍCIO -->
+    <div class="panel active" id="panel-inicio">
+      <div id="dashboard-greeting" style="font-family:'Cinzel',serif;font-size:18px;color:var(--gold2)"></div>
+      <div id="stories-bar-wrap" style="display:none;overflow-x:auto;padding:10px 2px 6px">
+        <div id="stories-bar" style="display:flex;gap:14px"></div>
+      </div>
+      <div id="motd-banner" style="display:none"></div>
+      <div id="alert-bar" style="display:none;background:rgba(184,118,58,0.12);border:1px solid var(--orange);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--orange)"></div>
+      <div class="grid4">
+        <div class="stat-card">
+          <div class="stat-label">Nível</div>
+          <div class="stat-value" id="stat-level">1</div>
+          <div class="stat-sub">Aventureiro</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Carteira</div>
+          <div class="stat-value" id="stat-wallet">0</div>
+          <div class="stat-sub">✦ Cry</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Banco</div>
+          <div class="stat-value" id="stat-bank">0</div>
+          <div class="stat-sub">✦ Cry</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Energia</div>
+          <div class="stat-value" id="stat-energy">100%</div>
+          <div class="stat-sub" id="stat-hunger-label">Alimentado</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title" role="heading" aria-level="2">📊 Status do Personagem</div>
+          <div id="char-status-display">
+            <div class="rpg-stat-row">
+              <div class="rpg-stat-label">HP</div>
+              <div class="rpg-stat-bar"><div class="progress-bar"><div class="progress-fill progress-red" id="bar-hp" style="width:100%"></div></div></div>
+              <div class="rpg-stat-val" id="val-hp">100/100</div>
+            </div>
+            <div class="rpg-stat-row">
+              <div class="rpg-stat-label">Mana</div>
+              <div class="rpg-stat-bar"><div class="progress-bar"><div class="progress-fill progress-blue" id="bar-mana" style="width:100%"></div></div></div>
+              <div class="rpg-stat-val" id="val-mana">60/60</div>
+            </div>
+            <div class="rpg-stat-row">
+              <div class="rpg-stat-label">Stamina</div>
+              <div class="rpg-stat-bar"><div class="progress-bar"><div class="progress-fill progress-green" id="bar-stamina" style="width:100%"></div></div></div>
+              <div class="rpg-stat-val" id="val-stamina">80/80</div>
+            </div>
+            <div class="rpg-stat-row">
+              <div class="rpg-stat-label">XP</div>
+              <div class="rpg-stat-bar"><div class="progress-bar"><div class="progress-fill progress-gold" id="bar-xp" style="width:0%"></div></div></div>
+              <div class="rpg-stat-val" id="val-xp">0/100</div>
+            </div>
+            <div class="rpg-stat-row">
+              <div class="rpg-stat-label">Fome</div>
+              <div class="rpg-stat-bar"><div class="progress-bar"><div class="progress-fill progress-purple" id="bar-hunger" style="width:100%"></div></div></div>
+              <div class="rpg-stat-val" id="val-hunger">100/100</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <span id="char-class-badge" class="badge badge-purple">⚔️ Guerreiro</span>
+            <span id="char-rank-badge" class="rank-display rank-recruit">🎖️ Recruta</span>
+            <span id="char-guild-badge" class="badge badge-gray">Sem Guilda</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" role="heading" aria-level="2">⚡ Ações Rápidas</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-success" onclick="navigate('empregos')" style="text-align:left">💼 Trabalhar</button>
+            <button class="btn btn-info" onclick="navigate('missoes')" style="text-align:left">📜 Ver Missões</button>
+            <button class="btn btn-purple" onclick="navigate('batalha')" style="text-align:left">⚔️ Batalhar</button>
+            <button class="btn btn-gold" onclick="navigate('mercado')" style="text-align:left">🛒 Mercado</button>
+            <button class="btn" onclick="consumeFood()" style="text-align:left">🍖 Alimentar-se</button>
+            <button class="btn" onclick="navigate('coleta')" style="text-align:left">⛏️ Coletar Recursos</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" role="heading" aria-level="2">📰 Feed de Atividades</div>
+        <div class="feed" id="activity-feed">
+          <div class="feed-item"><span>🌅</span><span>Bem-vindo ao mundo de Crydan! Sua jornada começa aqui.</span><span class="feed-time" style="margin-left:auto">agora</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="panel" id="panel-perfil">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">🔍 Buscar Perfil</div>
+        <div class="user-search-wrap">
+          <input class="form-input" id="public-profile-search" placeholder="@nomedousuario" autocomplete="off" oninput="userSearchInput('public-profile-search', true)" onblur="userSearchBlur('public-profile-search')">
+          <div class="user-search-results" id="public-profile-search-results"></div>
+        </div>
+      </div>
+      <div class="profile-hero">
+        <div class="profile-banner" id="profile-banner">
+          <div class="profile-banner-img" id="profile-banner-img"></div>
+          <video class="profile-banner-video" id="profile-banner-video" autoplay muted loop playsinline style="display:none"></video>
+          <div class="banner-fx-slot" id="banner-fx-slot"></div>
+          <div class="profile-banner-controls">
+            <div class="profile-banner-edit" onclick="openBannerVideoModal()">🎬 Vídeo</div>
+            <div class="profile-banner-edit" onclick="openBannerAdjustModal()">🔧 Ajustar</div>
+            <div class="profile-banner-edit" onclick="openEditProfile()">🖼️ Editar banner</div>
+          </div>
+        </div>
+        <div class="profile-body">
+          <div class="story-ring-wrap" id="my-story-ring" onclick="handleMyAvatarClick()">
+            <div class="avatar-frame-wrap" id="profile-avatar-frame">
+              <div class="profile-avatar" id="profile-avatar-icon">⚔️</div>
+              <div class="frame-svg-slot"></div>
+            </div>
+            <div class="story-add-badge" id="story-add-badge" title="Postar recado">+</div>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="profile-name">Aventureiro</div>
+            <div class="profile-title" id="profile-title">🔮 Novato de Crydan</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <span id="profile-rank-badge" class="rank-display rank-recruit">🎖️ Recruta</span>
+              <span id="profile-class-disp" class="badge badge-purple">⚔️ Guerreiro</span>
+              <span id="profile-age-badge" class="badge badge-gray">? anos</span>
+            </div>
+            <div class="cr-stat-row">
+              <span class="cr-stat-chip"><span class="ic">⚔️</span>Batalhas <b id="p-battles">0</b></span>
+              <span class="cr-stat-chip"><span class="ic">🏆</span>Vitórias <b id="p-wins" style="color:var(--green)">0</b></span>
+              <span class="cr-stat-chip"><span class="ic">💀</span>Derrotas <b id="p-losses" style="color:var(--red)">0</b></span>
+              <span class="cr-stat-chip"><span class="ic">📜</span>Missões <b id="p-quests" style="color:var(--cyan)">0</b></span>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn btn-primary" onclick="openEditProfile()">✏️ Personalizar Perfil</button>
+          </div>
+        </div>
+        <div class="profile-bio" id="profile-bio" style="display:none"></div>
+        <div id="profile-link-row" style="display:none;padding:0 20px 14px"></div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">⚔️</div>
+            <div class="cr-section-text"><div class="cr-section-title" role="heading" aria-level="2">Atributos</div><div class="cr-section-sub">Seus pontos de perícia</div></div>
+          </div>
+          <div id="attributes-display">
+            <div class="cr-attr">
+              <div class="cr-attr-top"><span class="lbl">Força</span><span class="val" id="attr-str" style="color:var(--red)">10</span></div>
+              <div class="cr-attr-track"><div class="cr-attr-fill" id="attr-str-fill" style="width:20%;background:var(--red)"></div></div>
+            </div>
+            <div class="cr-attr">
+              <div class="cr-attr-top"><span class="lbl">Destreza</span><span class="val" id="attr-dex" style="color:var(--green)">10</span></div>
+              <div class="cr-attr-track"><div class="cr-attr-fill" id="attr-dex-fill" style="width:20%;background:var(--green)"></div></div>
+            </div>
+            <div class="cr-attr">
+              <div class="cr-attr-top"><span class="lbl">Inteligência</span><span class="val" id="attr-int" style="color:var(--cyan)">10</span></div>
+              <div class="cr-attr-track"><div class="cr-attr-fill" id="attr-int-fill" style="width:20%;background:var(--cyan)"></div></div>
+            </div>
+            <div class="cr-attr">
+              <div class="cr-attr-top"><span class="lbl">Vitalidade</span><span class="val" id="attr-vit" style="color:var(--purple)">10</span></div>
+              <div class="cr-attr-track"><div class="cr-attr-fill" id="attr-vit-fill" style="width:20%;background:var(--purple)"></div></div>
+            </div>
+            <div class="cr-attr">
+              <div class="cr-attr-top"><span class="lbl">Sabedoria</span><span class="val" id="attr-wis" style="color:var(--gold2)">10</span></div>
+              <div class="cr-attr-track"><div class="cr-attr-fill" id="attr-wis-fill" style="width:20%;background:var(--gold2)"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">💰</div>
+            <div class="cr-section-text"><div class="cr-section-title" role="heading" aria-level="2">Finanças</div><div class="cr-section-sub">Seu patrimônio em Crydan</div></div>
+          </div>
+          <div style="font-size:13px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text2)">Carteira</span><span class="cry" id="p-wallet">0 Cry</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text2)">Banco</span><span class="cry" id="p-bank">0 Cry</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text2)">Total Ganho</span><span class="cry" id="p-earned">0 Cry</span></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px"><span style="color:var(--text2)">Casas</span><span id="p-houses" style="color:var(--gold2)">0</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="color:var(--text2)">Empresas</span><span id="p-companies" style="color:var(--gold2)">0</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🎭</div>
+            <div class="cr-section-text"><div class="cr-section-title" role="heading" aria-level="2">Equipamentos</div><div class="cr-section-sub">O que você está usando</div></div>
+          </div>
+          <div class="cr-equip-slot"><div class="cr-equip-icon">🗡️</div><div class="cr-equip-body"><div class="cr-equip-slotname">Arma</div><div class="cr-equip-itemname empty" id="eq-weapon">Nenhuma</div></div></div>
+          <div class="cr-equip-slot"><div class="cr-equip-icon">🛡️</div><div class="cr-equip-body"><div class="cr-equip-slotname">Escudo</div><div class="cr-equip-itemname empty" id="eq-shield">Nenhum</div></div></div>
+          <div class="cr-equip-slot"><div class="cr-equip-icon">👕</div><div class="cr-equip-body"><div class="cr-equip-slotname">Armadura</div><div class="cr-equip-itemname empty" id="eq-armor">Nenhuma</div></div></div>
+          <div class="cr-equip-slot"><div class="cr-equip-icon">💍</div><div class="cr-equip-body"><div class="cr-equip-slotname">Amuleto</div><div class="cr-equip-itemname empty" id="eq-amulet">Nenhum</div></div></div>
+          <div class="cr-equip-slot"><div class="cr-equip-icon">🧢</div><div class="cr-equip-body"><div class="cr-equip-slotname">Elmo</div><div class="cr-equip-itemname empty" id="eq-helmet">Nenhum</div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🌐</div>
+          <div class="cr-section-text"><div class="cr-section-title" role="heading" aria-level="2">Social</div><div class="cr-section-sub">Sua rede em Crydan</div></div>
+        </div>
+        <div id="own-follow-counts" style="display:flex;gap:24px;font-size:13px;color:var(--text2);margin-bottom:4px">
+          <span>—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">📜</div>
+          <div class="cr-section-text"><div class="cr-section-title" role="heading" aria-level="2">Histórico Recente</div><div class="cr-section-sub">Suas últimas ações</div></div>
+        </div>
+        <div id="profile-history" style="font-size:13px;color:var(--text2)">Nenhuma ação recente.</div>
+      </div>
+    </div>
+
+    <!-- INVENTÁRIO -->
+    <div class="panel" id="panel-inventario">
+      <div class="card">
+        <div class="card-title">🎒 Inventário</div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'inv-tab','tab-todos')">Todos</button>
+          <button class="tab-btn" onclick="switchTab(this,'inv-tab','tab-armas')">Armas</button>
+          <button class="tab-btn" onclick="switchTab(this,'inv-tab','tab-armaduras')">Armaduras</button>
+          <button class="tab-btn" onclick="switchTab(this,'inv-tab','tab-consumiveis')">Consumíveis</button>
+          <button class="tab-btn" onclick="switchTab(this,'inv-tab','tab-materiais')">Materiais</button>
+        </div>
+        <div id="tab-todos" class="tab-content active">
+          <div class="item-grid" id="inventory-grid">
+            <div style="color:var(--text3);font-size:13px;grid-column:1/-1;padding:20px;text-align:center">Inventário vazio. Explore o mundo para encontrar itens!</div>
+          </div>
+        </div>
+        <div id="tab-armas" class="tab-content"><div class="item-grid" id="inv-weapons-grid"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhuma arma</div></div></div>
+        <div id="tab-armaduras" class="tab-content"><div class="item-grid" id="inv-armor-grid"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhuma armadura</div></div></div>
+        <div id="tab-consumiveis" class="tab-content"><div class="item-grid" id="inv-cons-grid"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhum consumível</div></div></div>
+        <div id="tab-materiais" class="tab-content"><div class="item-grid" id="inv-mat-grid"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhum material</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🛒 Loja Rápida de Consumíveis</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+          <div class="market-item" onclick="buyQuick('pao','🍞','Pão',5,'food')"><span style="font-size:20px">🍞</span><div><div style="font-size:13px">Pão</div><div style="font-size:11px;color:var(--text2)">+20 fome</div></div><div class="market-price">5 ✦</div></div>
+          <div class="market-item" onclick="buyQuick('carne','🍖','Carne Assada',15,'food')"><span style="font-size:20px">🍖</span><div><div style="font-size:13px">Carne Assada</div><div style="font-size:11px;color:var(--text2)">+50 fome</div></div><div class="market-price">15 ✦</div></div>
+          <div class="market-item" onclick="buyQuick('pocao_hp','🧪','Poção de HP',30,'potion')"><span style="font-size:20px">🧪</span><div><div style="font-size:13px">Poção de HP</div><div style="font-size:11px;color:var(--text2)">+30 HP</div></div><div class="market-price">30 ✦</div></div>
+          <div class="market-item" onclick="buyQuick('pocao_mana','💙','Poção de Mana',25,'potion')"><span style="font-size:20px">💙</span><div><div style="font-size:13px">Poção de Mana</div><div style="font-size:11px;color:var(--text2)">+25 Mana</div></div><div class="market-price">25 ✦</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANCO -->
+    <div class="panel" id="panel-banco">
+      <div class="grid3">
+        <div class="stat-card">
+          <div class="stat-label">Carteira</div>
+          <div class="stat-value" id="bank-wallet">0</div>
+          <div class="stat-sub">✦ Cry disponível</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Saldo Bancário</div>
+          <div class="stat-value" id="bank-balance">0</div>
+          <div class="stat-sub">✦ Cry no banco</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="bank-total">0</div>
+          <div class="stat-sub">✦ Cry total</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🏦</div>
+            <div class="cr-section-text"><div class="cr-section-title">Operações Bancárias</div></div>
+          </div>
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(this,'bank-tab','btab-deposito')">Depósito</button>
+            <button class="tab-btn" onclick="switchTab(this,'bank-tab','btab-saque')">Saque</button>
+            <button class="tab-btn" onclick="switchTab(this,'bank-tab','btab-pix')">PIX</button>
+            <button class="tab-btn" onclick="switchTab(this,'bank-tab','btab-trans')">Transferir</button>
+          </div>
+          <div id="btab-deposito" class="tab-content active">
+            <div class="form-group"><label class="form-label">Valor a Depositar</label><input class="form-input" id="dep-amount" type="number" min="1" placeholder="Quantidade em Cry"></div>
+            <button class="btn btn-success" onclick="bankDeposit()">✦ Depositar</button>
+          </div>
+          <div id="btab-saque" class="tab-content">
+            <div class="form-group"><label class="form-label">Valor a Sacar</label><input class="form-input" id="wit-amount" type="number" min="1" placeholder="Quantidade em Cry"></div>
+            <button class="btn btn-primary" onclick="bankWithdraw()">✦ Sacar</button>
+          </div>
+          <div id="btab-pix" class="tab-content">
+            <div class="form-group"><label class="form-label">Usuário Destino</label>
+              <div class="user-search-wrap">
+                <input class="form-input" id="pix-target" placeholder="@nomedousuario" autocomplete="off" oninput="userSearchInput('pix-target')" onblur="userSearchBlur('pix-target')">
+                <div class="user-search-results" id="pix-target-results"></div>
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label">Valor</label><input class="form-input" id="pix-amount" type="number" min="1" placeholder="Quantidade em Cry"></div>
+            <button class="btn btn-info" onclick="sendPix()">⚡ Enviar PIX</button>
+          </div>
+          <div id="btab-trans" class="tab-content">
+            <div class="form-group"><label class="form-label">Usuário Destino</label><input class="form-input" id="trans-target" placeholder="Nome do aventureiro"></div>
+            <div class="form-group"><label class="form-label">Valor</label><input class="form-input" id="trans-amount" type="number" min="1" placeholder="Quantidade em Cry"></div>
+            <button class="btn btn-purple" onclick="sendTransfer()">💸 Transferir</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">📋</div>
+            <div class="cr-section-text"><div class="cr-section-title">Extrato Bancário</div></div>
+          </div>
+          <div id="bank-history" style="font-size:13px">
+            <div style="color:var(--text3);text-align:center;padding:20px">Sem movimentações</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MERCADO -->
+    <div class="panel" id="panel-mercado">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🛒</div><div class="cr-section-text"><div class="cr-section-title">Mercado de Crydan</div><div class="cr-section-sub">Compre, venda e negocie com outros jogadores</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'mkt-tab','mtab-comprar')">Comprar</button>
+          <button class="tab-btn" onclick="switchTab(this,'mkt-tab','mtab-vender')">Vender</button>
+          <button class="tab-btn" onclick="switchTab(this,'mkt-tab','mtab-jogadores')">P2P</button>
+        </div>
+        <div id="mtab-comprar" class="tab-content active">
+          <div id="shop-grid" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div id="mtab-vender" class="tab-content">
+          <div id="sell-grid" style="display:flex;flex-direction:column;gap:6px">
+            <div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Selecione itens do inventário para vender</div>
+          </div>
+          <div id="inv-for-sale" style="margin-top:12px"></div>
+        </div>
+        <div id="mtab-jogadores" class="tab-content">
+          <div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">📢 Mercado de jogadores — em breve novos anúncios!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CASAS -->
+    <div class="panel" id="panel-casas">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🏡</div><div class="cr-section-text"><div class="cr-section-title">Imóveis de Crydan</div><div class="cr-section-sub">Compre ou alugue sua morada</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'house-tab','htab-comprar')">Comprar</button>
+          <button class="tab-btn" onclick="switchTab(this,'house-tab','htab-alugar')">Alugar</button>
+          <button class="tab-btn" onclick="switchTab(this,'house-tab','htab-minhas')">Minhas</button>
+        </div>
+        <div id="htab-comprar" class="tab-content active">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="houses-buy-grid"></div>
+        </div>
+        <div id="htab-alugar" class="tab-content">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="houses-rent-grid"></div>
+        </div>
+        <div id="htab-minhas" class="tab-content">
+          <div id="my-houses" style="display:flex;flex-direction:column;gap:8px">
+            <div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Você não possui imóveis.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPRESAS -->
+    <div class="panel" id="panel-empresas">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🏢</div><div class="cr-section-text"><div class="cr-section-title">Empresas de Crydan</div><div class="cr-section-sub">Invista e gere renda passiva</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'comp-tab','ctab-comprar')">Comprar</button>
+          <button class="tab-btn" onclick="switchTab(this,'comp-tab','ctab-minhas')">Minhas Empresas</button>
+        </div>
+        <div id="ctab-comprar" class="tab-content active">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="companies-grid"></div>
+        </div>
+        <div id="ctab-minhas" class="tab-content">
+          <div id="my-companies" style="display:flex;flex-direction:column;gap:8px">
+            <div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Você não possui empresas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPREGOS -->
+    <div class="panel" id="panel-empregos">
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">💼</div>
+          <div class="cr-section-text"><div class="cr-section-title">Sistema de Empregos</div></div>
+        </div>
+        <div id="work-status-bar" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span>Emprego Atual: <b id="current-job" style="color:var(--gold2)">Desempregado</b></span>
+            <span>Salário: <span class="cry" id="job-salary">—</span></span>
+            <span>Próximo Turno: <b id="work-cooldown" style="color:var(--cyan)">—</b></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="jobs-list"></div>
+      </div>
+    </div>
+
+    <!-- BATALHA -->
+    <div class="panel" id="panel-batalha">
+      <div id="battle-status-bar" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+        <span>❤️ HP: <b id="battle-hp-display" style="color:var(--red)">—</b></span>
+        <span>⏳ Próxima Batalha: <b id="battle-cooldown" style="color:var(--cyan)">Disponível</b></span>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">⚔️</div>
+            <div class="cr-section-text"><div class="cr-section-title">Arena de Batalha</div><div class="cr-section-sub">Enfrente monstros e ganhe recompensas</div></div>
+          </div>
+          <div style="text-align:center;padding:12px 0 4px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-success" onclick="startBattle('goblin')">🐉 Goblin (Fácil)</button>
+              <button class="btn btn-primary" onclick="startBattle('orc')">👹 Orc (Médio)</button>
+              <button class="btn btn-danger" onclick="startBattle('dragao')">🐲 Dragão (Difícil)</button>
+              <button class="btn btn-purple" onclick="startBattle('lich')">💀 Lich (Épico)</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🏟️</div>
+            <div class="cr-section-text"><div class="cr-section-title">Arena PvP</div><div class="cr-section-sub">Desafie outros jogadores</div></div>
+          </div>
+          <div style="padding:4px 0 8px">
+            <div class="form-group">
+              <label class="form-label">Desafiar Jogador</label>
+              <div class="user-search-wrap">
+                <input class="form-input" id="pvp-target" placeholder="@nomedoadversario" autocomplete="off" oninput="userSearchInput('pvp-target')" onblur="userSearchBlur('pvp-target')">
+                <div class="user-search-results" id="pvp-target-results"></div>
+              </div>
+            </div>
+            <button class="btn btn-danger" style="width:100%" onclick="startPvP()">⚔️ Desafiar!</button>
+          </div>
+          <div class="divider"></div>
+          <div id="pvp-challenges" style="text-align:center;font-size:12px;color:var(--text3)">Nenhum desafio no momento.</div>
+        </div>
+      </div>
+      <div class="card" id="battle-arena-card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px">
+          <div style="text-align:center;flex:1;position:relative" id="battle-player-col">
+            <div id="battle-player-avatar" class="battle-combatant">⚔️</div>
+            <div style="font-size:12px;color:var(--text2);margin:4px 0">Você</div>
+            <div class="hp-bar-outer"><div class="hp-bar-inner" id="battle-player-hp-bar" style="width:100%"></div></div>
+          </div>
+          <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--gold2)">VS</div>
+          <div style="text-align:center;flex:1;position:relative" id="battle-monster-col">
+            <div id="battle-monster-avatar" class="battle-combatant">👺</div>
+            <div id="battle-monster-name" style="font-size:12px;color:var(--text2);margin:4px 0"></div>
+            <div class="hp-bar-outer"><div class="hp-bar-inner monster" id="battle-monster-hp-bar" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div id="battle-dice-row" style="display:flex;justify-content:center;align-items:center;gap:30px;min-height:60px"></div>
+      </div>
+      <div class="card" id="battle-log-card" style="display:none">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">📋</div>
+          <div class="cr-section-text"><div class="cr-section-title">Log de Batalha</div></div>
+        </div>
+        <div id="battle-log" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- MISSÕES -->
+    <div class="panel" id="panel-missoes">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">📜</div><div class="cr-section-text"><div class="cr-section-title">Missões Disponíveis</div><div class="cr-section-sub">Complete tarefas e ganhe recompensas</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'quest-tab','qtab-ativas')">Ativas</button>
+          <button class="tab-btn" onclick="switchTab(this,'quest-tab','qtab-disponiveis')">Disponíveis</button>
+          <button class="tab-btn" onclick="switchTab(this,'quest-tab','qtab-concluidas')">Concluídas</button>
+        </div>
+        <div id="qtab-ativas" class="tab-content active">
+          <div id="active-quests" style="display:flex;flex-direction:column;gap:8px">
+            <div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhuma missão ativa</div>
+          </div>
+        </div>
+        <div id="qtab-disponiveis" class="tab-content">
+          <div id="available-quests" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div id="qtab-concluidas" class="tab-content">
+          <div id="completed-quests" style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Nenhuma missão concluída</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUILDAS -->
+    <div class="panel" id="panel-guildas">
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🛡️</div>
+          <div class="cr-section-text"><div class="cr-section-title">Sistema de Guildas</div><div class="cr-section-sub">Encontre sua irmandade ou funde a sua</div></div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'guild-tab','gtab-explorar')">Explorar</button>
+          <button class="tab-btn" onclick="switchTab(this,'guild-tab','gtab-ranking');renderGuildRanking()">Ranking</button>
+          <button class="tab-btn" onclick="switchTab(this,'guild-tab','gtab-minha')">Minha Guilda</button>
+          <button class="tab-btn" onclick="switchTab(this,'guild-tab','gtab-criar')">Criar</button>
+        </div>
+        <div id="gtab-explorar" class="tab-content active">
+          <div style="display:flex;flex-direction:column;gap:8px" id="guilds-list"></div>
+        </div>
+        <div id="gtab-ranking" class="tab-content">
+          <div class="tabs" style="margin-bottom:10px">
+            <button class="tab-btn active" onclick="switchTab(this,'gr-tab','gr-xp');renderGuildRanking('xp')">XP</button>
+            <button class="tab-btn" onclick="switchTab(this,'gr-tab','gr-honor');renderGuildRanking('honor')">Honra</button>
+          </div>
+          <div id="gr-xp" class="tab-content active"><div id="guild-ranking-list" style="display:flex;flex-direction:column;gap:6px"></div></div>
+          <div id="gr-honor" class="tab-content"><div id="guild-ranking-list-honor" style="display:flex;flex-direction:column;gap:6px"></div></div>
+          <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+            <button class="btn btn-sm" onclick="changeGuildRankingPage(-1)">‹ Anterior</button>
+            <span id="guild-ranking-page" style="align-self:center;font-size:12px;color:var(--text3)">1</span>
+            <button class="btn btn-sm" onclick="changeGuildRankingPage(1)">Próxima ›</button>
+          </div>
+        </div>
+        <div id="gtab-minha" class="tab-content">
+          <div id="my-guild-panel" style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Você não pertence a nenhuma guilda.</div>
+        </div>
+        <div id="gtab-criar" class="tab-content">
+          <div class="form-group"><label class="form-label">Nome da Guilda</label><input class="form-input" id="guild-name" placeholder="Ex: Ordem da Chama" maxlength="40"></div>
+          <div class="form-group"><label class="form-label">Tag (2-6 letras/números, opcional)</label><input class="form-input" id="guild-tag" placeholder="Ex: CRY" maxlength="6" style="text-transform:uppercase"></div>
+          <div class="form-group"><label class="form-label">Emblema (emoji)</label><input class="form-input" id="guild-emblem" placeholder="🛡️" maxlength="2"></div>
+          <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="guild-desc" placeholder="Descreva sua guilda..." maxlength="200"></div>
+          <div class="form-group"><label class="form-label">Categoria</label>
+            <select class="form-input" id="guild-category">
+              <option value="geral">Geral</option>
+              <option value="pvp">PvP / Combate</option>
+              <option value="rp">Roleplay</option>
+              <option value="casual">Casual</option>
+              <option value="competitiva">Competitiva</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Privacidade</label>
+            <select class="form-input" id="guild-privacy">
+              <option value="open">🔓 Aberta — qualquer um pode entrar</option>
+              <option value="request">📝 Solicitação — precisa aprovação</option>
+              <option value="closed">🔒 Fechada — só por convite</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Nível mínimo para entrar</label><input class="form-input" type="number" id="guild-minlevel" value="1" min="1" max="99"></div>
+          <div style="font-size:11px;color:var(--crydan-text-muted);margin-bottom:8px">⚠️ A criação de guildas passa por aprovação da administração. Os 500 Cry só são cobrados se o pedido for aceito.</div>
+          <div id="guild-pending-request-box" style="display:none;padding:10px;border:1px solid var(--gold2);border-radius:10px;margin-bottom:10px;font-size:12px;color:var(--gold2)">📝 Você já tem um pedido de guilda aguardando aprovação.</div>
+          <button class="btn btn-primary" id="guild-create-btn" onclick="requestCreateGuild()">✦ Solicitar Criação de Guilda</button>
+        </div>
+      </div>
+
+      <div class="card" id="guild-invites-card" style="display:none">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">✉️</div>
+          <div class="cr-section-text"><div class="cr-section-title">Convites de Guilda</div></div>
+        </div>
+        <div id="guild-invites-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+
+    <!-- BOSS -->
+    <div class="panel" id="panel-boss">
+      <div class="card">
+        <div class="card-title">👹 Chefes de Masmorra</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px" id="bosses-grid"></div>
+      </div>
+    </div>
+
+    <!-- MAPA -->
+    <div class="panel" id="panel-mapa">
+      <div class="grid2">
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🗺️</div>
+            <div class="cr-section-text"><div class="cr-section-title">Mapa de Crydan</div><div class="cr-section-sub">Ande pelo reino — a grama alta pode esconder perigo</div></div>
+          </div>
+          <div id="world-grid-wrap" style="display:flex;justify-content:center;margin:10px 0">
+            <div id="world-grid"></div>
+          </div>
+          <div id="map-dpad" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">
+            <button class="btn-sm" onclick="moveOnMap(0,-1)" style="width:44px">▲</button>
+            <div style="display:flex;gap:4px">
+              <button class="btn-sm" onclick="moveOnMap(-1,0)" style="width:44px">◀</button>
+              <button class="btn-sm" onclick="moveOnMap(0,1)" style="width:44px">▼</button>
+              <button class="btn-sm" onclick="moveOnMap(1,0)" style="width:44px">▶</button>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:10.5px;color:var(--text3);margin-top:6px">Use as setas do teclado ou os botões acima</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📍 Localização Atual</div>
+          <div id="zone-info" style="font-size:13px">
+            <div style="font-size:24px;text-align:center;margin-bottom:10px">🏘️</div>
+            <div style="color:var(--gold);font-family:'Cinzel',serif;margin-bottom:6px">Vilarejo</div>
+            <div style="color:var(--text2);margin-bottom:10px">O ponto de partida de toda aventura em Crydan. Seguro mas com poucas recompensas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLETA -->
+    <div class="panel" id="panel-coleta">
+      <div class="card">
+        <div class="card-title">⛏️ Sistema de Coleta</div>
+        <div class="grid2">
+          <div>
+            <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:10px;font-size:13px">⛏️ Mineração</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="collect('mineracao','pedra','🪨')">⛏️ Extrair Pedra (0 Cry)</button>
+              <button class="btn btn-info" onclick="collect('mineracao','ferro','⚙️')">🔨 Minerar Ferro (5 Cry)</button>
+              <button class="btn btn-gold" onclick="collect('mineracao','ouro_mineral','🥇')">✨ Minerar Ouro (15 Cry)</button>
+              <button class="btn btn-purple" onclick="collect('mineracao','cristal','💎')">💎 Minerar Cristal (30 Cry)</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:10px;font-size:13px">🎣 Pesca</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="collect('pesca','peixe_comum','🐟')">🐟 Pescar Peixe (0 Cry)</button>
+              <button class="btn btn-success" onclick="collect('pesca','peixe_raro','🐠')">🐠 Pescar Raro (10 Cry)</button>
+              <button class="btn btn-gold" onclick="collect('pesca','peixe_lendario','🐡')">🐡 Lendário (25 Cry)</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:10px;font-size:13px">🏹 Caça</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="collect('caca','coelho','🐇')">🐇 Caçar Coelho (0 Cry)</button>
+              <button class="btn btn-primary" onclick="collect('caca','cervo','🦌')">🦌 Caçar Cervo (8 Cry)</button>
+              <button class="btn btn-danger" onclick="collect('caca','urso','🐻')">🐻 Caçar Urso (20 Cry)</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:10px;font-size:13px">🌿 Coleta</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="collect('coleta','erva','🌿')">🌿 Coletar Erva (0 Cry)</button>
+              <button class="btn btn-success" onclick="collect('coleta','cogumelo','🍄')">🍄 Cogumelo Mágico (5 Cry)</button>
+              <button class="btn btn-purple" onclick="collect('coleta','flor_arcana','🌸')">🌸 Flor Arcana (12 Cry)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AMIGOS -->
+    <div class="panel" id="panel-amigos">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">🤝 Amigos</div>
+          <div class="form-group">
+            <label class="form-label">Adicionar Amigo</label>
+            <div class="user-search-wrap">
+              <input class="form-input" id="friend-name" placeholder="@nomedousuario" autocomplete="off" oninput="userSearchInput('friend-name')" onblur="userSearchBlur('friend-name')">
+              <div class="user-search-results" id="friend-name-results"></div>
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="addFriend()">➕ Adicionar</button>
+          <div class="divider"></div>
+          <div id="friends-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+            <div style="color:var(--text3);font-size:13px;padding:10px;text-align:center">Nenhum amigo ainda</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📨 Solicitações</div>
+          <div id="friend-requests" style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Sem solicitações</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CASAMENTO -->
+    <div class="panel" id="panel-casamento">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">💍</div><div class="cr-section-text"><div class="cr-section-title">Sistema de Casamento</div></div></div>
+        <div id="marriage-panel" style="text-align:center;padding:20px">
+          <div style="font-size:56px;margin-bottom:14px">💍</div>
+          <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--gold);margin-bottom:8px">Encontre Seu Par</div>
+          <div style="color:var(--text2);margin-bottom:16px;font-size:13px">Peça alguém em casamento e compartilhe os bônus da vida a dois em Crydan!</div>
+          <div class="form-group" style="max-width:300px;margin:0 auto 12px">
+            <label class="form-label">Nome do Parceiro(a)</label>
+            <div class="user-search-wrap">
+              <input class="form-input" id="marry-target" placeholder="@nomedousuario" autocomplete="off" oninput="userSearchInput('marry-target')" onblur="userSearchBlur('marry-target')">
+              <div class="user-search-results" id="marry-target-results"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="proposeMarriage()">💍 Pedir em Casamento (200 Cry)</button>
+          <div id="marriage-status" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING -->
+    <div class="panel" id="panel-ranking">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">📊</div><div class="cr-section-text"><div class="cr-section-title">Ranking Global</div><div class="cr-section-sub">Veja quem lidera Crydan</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'rank-tab','rtab-nivel')">Nível</button>
+          <button class="tab-btn" onclick="switchTab(this,'rank-tab','rtab-riqueza')">Riqueza</button>
+          <button class="tab-btn" onclick="switchTab(this,'rank-tab','rtab-batalhas')">Batalhas</button>
+          <button class="tab-btn" onclick="switchTab(this,'rank-tab','rtab-missoes')">Missões</button>
+        </div>
+        <div id="rtab-nivel" class="tab-content active"><div id="rank-level-table"></div></div>
+        <div id="rtab-riqueza" class="tab-content"><div id="rank-wealth-table"></div></div>
+        <div id="rtab-batalhas" class="tab-content"><div id="rank-battles-table"></div></div>
+        <div id="rtab-missoes" class="tab-content"><div id="rank-quests-table"></div></div>
+      </div>
+    </div>
+
+    <!-- CONQUISTAS -->
+    <div class="panel" id="panel-conquistas">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🏆</div><div class="cr-section-text"><div class="cr-section-title">Conquistas</div><div class="cr-section-sub">Desbloqueie marcos da sua jornada</div></div></div>
+        <div id="achievements-grid" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
+    <!-- CRYSTAR -->
+    <div class="panel" id="panel-crystar">
+      <div id="crystar-panel-content"></div>
+    </div>
+
+    <!-- GALERIA -->
+    <div class="panel" id="panel-galeria">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🖼️</div><div class="cr-section-text"><div class="cr-section-title">Galeria de Avatares</div><div class="cr-section-sub">Clique num avatar para equipá-lo — alguns são desbloqueados por conquistas</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px" id="avatar-gallery">
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="card" id="frame-preview-card" style="display:none">
+        <div class="cr-section-head"><div class="cr-section-icon">👁️</div><div class="cr-section-text"><div class="cr-section-title">Prévia da Moldura</div><div class="cr-section-sub">Veja como fica antes de aplicar ao perfil</div></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="avatar-frame-wrap" id="frame-preview-wrap" style="width:96px;height:96px">
+            <div class="profile-avatar" id="frame-preview-avatar" style="width:96px;height:96px;font-size:36px">⚔️</div>
+            <div class="frame-svg-slot"></div>
+          </div>
+          <div style="flex:1;min-width:160px">
+            <div id="frame-preview-name" style="font-family:'Cinzel',serif;color:var(--gold2);font-size:16px;margin-bottom:10px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-success" onclick="confirmEquipPreviewedFrame()">✅ Aplicar ao Perfil</button>
+              <button class="btn" onclick="closeFramePreview()">✕ Fechar Prévia</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="banner-preview-card" style="display:none">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">👁️</div>
+          <div class="cr-section-text"><div class="cr-section-title">Prévia da Animação</div><div class="cr-section-sub">Veja como fica antes de aplicar ao seu banner</div></div>
+        </div>
+        <div class="profile-banner" id="banner-preview-box" style="height:96px;border-radius:var(--radius-md);position:relative;overflow:hidden;margin-bottom:12px;background:linear-gradient(135deg,var(--bg3),var(--bg4))">
+          <div class="banner-fx-slot" id="banner-preview-fx"></div>
+        </div>
+        <div id="banner-preview-name" style="font-family:'Cinzel',serif;color:var(--gold2);font-size:15px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-success" onclick="confirmEquipPreviewedBanner()">✅ Aplicar ao Banner</button>
+          <button class="btn" onclick="closeBannerPreview()">✕ Fechar Prévia</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🎇</div>
+          <div class="cr-section-text"><div class="cr-section-title">Animações de Banner</div><div class="cr-section-sub">Partículas reais — clique em "Ver" pra pré-visualizar antes de aplicar</div></div>
+        </div>
+        <div class="frame-shop-grid" id="banner-anim-shop"></div>
+      </div>
+
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🛍️</div>
+          <div class="cr-section-text"><div class="cr-section-title">Loja de Molduras Animadas</div><div class="cr-section-sub"><span class="badge badge-gold" id="frame-shop-total-badge">100+ disponíveis</span></div></div>
+        </div>
+        <div style="margin-bottom:10px"><input class="form-input" id="frame-shop-search" placeholder="🔎 Buscar moldura pelo nome..." oninput="renderAvatarFrameShop()"></div>
+        <div class="frame-shop-toolbar" id="frame-shop-tabs"></div>
+        <div class="frame-shop-grid" id="avatar-frame-shop"></div>
+      </div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="panel" id="panel-eventos">
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🎉</div><div class="cr-section-text"><div class="cr-section-title">Eventos Especiais</div><div class="cr-section-sub">Ofertas e desafios por tempo limitado</div></div></div>
+        <div id="events-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="card">
+        <div class="cr-section-head"><div class="cr-section-icon">🗓️</div><div class="cr-section-text"><div class="cr-section-title">Loja Sazonal</div><div class="cr-section-sub" id="seasonal-shop-sub">Molduras que só existem nesta época do ano</div></div></div>
+        <div class="frame-shop-grid" id="seasonal-shop-grid"></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="panel" id="panel-config">
+      <div class="grid2">
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">👤</div>
+            <div class="cr-section-text"><div class="cr-section-title">Conta</div><div class="cr-section-sub">Como as pessoas te veem em Crydan</div></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome de Usuário (@)</label>
+            <div style="position:relative">
+              <input class="form-input" id="cfg-username" placeholder="seu_usuario" maxlength="30" oninput="checkUsernameAvailability()" style="padding-left:24px">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--crydan-text-muted);font-size:13px">@</span>
+            </div>
+            <div id="cfg-username-hint" style="font-size:11px;margin-top:4px;min-height:15px;color:var(--crydan-text-muted)">Letras minúsculas, números, ponto e underline. É como as pessoas vão te encontrar (@usuario).</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome de Exibição</label>
+            <input class="form-input" id="cfg-name" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título do Perfil</label>
+            <input class="form-input" id="cfg-title" placeholder="Seu título personalizado">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bio / Sobre mim</label>
+            <textarea class="form-input" id="cfg-bio" rows="3" maxlength="180" placeholder="Conte um pouco sobre seu aventureiro..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL do Banner (imagem de fundo do perfil)</label>
+            <input class="form-input" id="cfg-banner" placeholder="https://exemplo.com/minha-imagem.jpg">
+          </div>
+          <button class="btn btn-primary" onclick="saveConfig()" style="width:100%">💾 Salvar Alterações</button>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🔐</div>
+            <div class="cr-section-text"><div class="cr-section-title">Login e Segurança</div><div class="cr-section-sub">Seu e-mail e formas de entrar na conta</div></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail atual</label>
+            <input class="form-input" id="cfg-current-email" readonly value="Carregando...">
+          </div>
+          <div id="cfg-email-change-box" style="display:none;margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Novo e-mail</label>
+              <input class="form-input" id="cfg-new-email" placeholder="novoemail@exemplo.com">
+            </div>
+            <div style="font-size:11px;color:var(--crydan-text-muted);margin-bottom:8px">Vamos enviar um link de confirmação para o e-mail novo (e, se a segurança extra estiver ativada, também para o antigo). O e-mail só muda de verdade depois que você clicar no link.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" style="flex:1" onclick="requestEmailChange()">📩 Enviar link de confirmação</button>
+              <button class="btn" style="flex:1" onclick="document.getElementById('cfg-email-change-box').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+          <button class="btn btn-sm" id="cfg-email-change-toggle" onclick="document.getElementById('cfg-email-change-box').style.display='block';this.style.display='none'" style="margin-bottom:14px">✏️ Trocar e-mail</button>
+
+          <div class="cr-cfg-block-title" style="margin-bottom:8px">Métodos de login</div>
+          <div id="cfg-login-methods" style="display:flex;flex-direction:column;gap:8px">Carregando...</div>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🎨</div>
+            <div class="cr-section-text"><div class="cr-section-title">Aparência</div><div class="cr-section-sub">Deixe a sua Crydan do seu jeito</div></div>
+          </div>
+
+          <div class="cr-cfg-block">
+            <div class="cr-cfg-block-title">Tema & Foto</div>
+            <div class="form-group">
+              <label class="form-label">Tema da Interface</label>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:8px;padding:10px 14px;border:1px solid var(--border);border-radius:12px">
+                <dotlottie-wc id="theme-toggle-lottie-cfg" src="/Toogle.lottie" style="width:48px;height:48px;cursor:pointer;flex-shrink:0" autoplay></dotlottie-wc>
+                <div>
+                  <div id="cfg-theme-current-label" style="font-family:'Cinzel',serif;color:var(--gold2);font-size:14px">Escuro</div>
+                  <div style="font-size:11px;color:var(--text3)">Clique no sol/lua pra alternar</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Foto de Perfil</label>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+                <img id="cfg-avatar-preview" class="avatar-photo-preview" style="display:none" alt="Prévia do seu avatar">
+                <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+                  <button class="btn btn-sm" onclick="document.getElementById('avatar-file-input').click()">📷 Carregar foto da galeria</button>
+                  <button class="btn btn-sm btn-danger" id="cfg-avatar-remove" style="display:none" onclick="removeAvatarPhoto()">✕ Remover foto</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cr-cfg-block">
+            <div class="cr-cfg-block-title">Cores & Fonte</div>
+            <div class="form-group">
+              <label class="form-label">Cor de Destaque (botões, títulos, brilhos)</label>
+              <div id="cfg-accent-swatches" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cor de Fundo do App</label>
+              <div id="cfg-bg-swatches" class="bg-swatch-grid" style="margin-top:4px"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ou use uma foto da sua galeria como fundo</label>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <input type="file" id="bg-image-file-input" accept="image/*" style="display:none" onchange="handleBgImageFileSelect(event)">
+                <button class="btn btn-sm" onclick="document.getElementById('bg-image-file-input').click()">🖼️ Carregar foto da galeria</button>
+                <button class="btn btn-sm btn-danger" id="cfg-bg-image-remove" style="display:none" onclick="removeCustomBgImage()">✕ Remover</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fonte do Site</label>
+              <div id="cfg-font-options" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:4px"></div>
+            </div>
+          </div>
+
+          <div class="cr-cfg-block">
+            <div class="cr-cfg-block-title">Molduras & Banner</div>
+            <div class="form-group">
+              <label class="form-label">Moldura de Avatar Animada</label>
+              <div style="font-size:12px;color:var(--text2);margin-top:4px">
+                Escolha, veja uma prévia e equipe na <span style="color:var(--gold2);cursor:pointer;text-decoration:underline" onclick="navigate('galeria')">🖼️ Galeria</span>.
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Animação do Banner</label>
+              <div style="font-size:12px;color:var(--text2);margin-top:4px">
+                Agora com partículas reais! Veja uma prévia ao vivo antes de aplicar, na <span style="color:var(--gold2);cursor:pointer;text-decoration:underline" onclick="navigate('galeria')">🖼️ Galeria</span>.
+              </div>
+            </div>
+          </div>
+
+          <div class="cr-cfg-block">
+            <div class="cr-cfg-block-title">Interface</div>
+            <div class="cr-toggle-row">
+              <div><div class="cr-toggle-label">Reduzir animações</div><div class="cr-toggle-desc">Menos efeitos de movimento na tela</div></div>
+              <label class="cr-switch"><input type="checkbox" id="cfg-reduce-motion" onchange="toggleReduceMotion(this.checked)"><span class="track"><span class="thumb"></span></span></label>
+            </div>
+            <div class="cr-toggle-row">
+              <div><div class="cr-toggle-label">Modo compacto</div><div class="cr-toggle-desc">Menos espaçamento, mais conteúdo na tela</div></div>
+              <label class="cr-switch"><input type="checkbox" id="cfg-compact-mode" onchange="toggleCompactMode(this.checked)"><span class="track"><span class="thumb"></span></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🔗</div>
+            <div class="cr-section-text"><div class="cr-section-title">Meus Links</div><div class="cr-section-sub">Redes sociais no seu perfil</div></div>
+          </div>
+          <div id="cfg-profile-links-inputs"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="saveProfileLinks()">💾 Salvar Links do Perfil</button>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🔔</div>
+            <div class="cr-section-text"><div class="cr-section-title">Notificações</div><div class="cr-section-sub">O que você quer ser avisado</div></div>
+          </div>
+          <div class="cr-toggle-row">
+            <div class="cr-toggle-label">Notif. de Batalha</div>
+            <label class="cr-switch"><input type="checkbox" id="cfg-notif-battle" checked><span class="track"><span class="thumb"></span></span></label>
+          </div>
+          <div class="cr-toggle-row">
+            <div class="cr-toggle-label">Notif. de Salário</div>
+            <label class="cr-switch"><input type="checkbox" id="cfg-notif-salary" checked><span class="track"><span class="thumb"></span></span></label>
+          </div>
+          <div class="cr-toggle-row">
+            <div class="cr-toggle-label">Notif. de Eventos</div>
+            <label class="cr-switch"><input type="checkbox" id="cfg-notif-events" checked><span class="track"><span class="thumb"></span></span></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🎮</div>
+            <div class="cr-section-text"><div class="cr-section-title">Sobre</div><div class="cr-section-sub">O que é o Crydan</div></div>
+          </div>
+          <div style="font-size:13px;color:var(--text2)">
+            <div style="margin-bottom:6px"><b style="color:var(--gold2)">Crydan</b> v2.0</div>
+            <div style="margin-bottom:4px">Sistema completo de RPG Medieval</div>
+            <div style="margin-bottom:4px">Economia com moeda ✦ Cry</div>
+            <div style="margin-bottom:4px">Batalhas, missões, guildas e mais!</div>
+            <div class="divider"></div>
+            <div style="color:var(--text3);font-size:11px;margin-top:6px">Feito com ❤️ para a comunidade</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🎁</div>
+            <div class="cr-section-text"><div class="cr-section-title">Convide Amigos</div><div class="cr-section-sub">Vocês dois ganham 500 Cry</div></div>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Seu código de convite:</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input class="form-input" id="cfg-referral-code" readonly style="font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-align:center;font-weight:700;color:var(--gold2)" value="Carregando...">
+            <button class="btn-sm" onclick="copyReferralCode()">📋 Copiar</button>
+          </div>
+          <div id="cfg-referral-redeem-box">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Tem um código de outro jogador?</div>
+            <div style="display:flex;gap:8px">
+              <input class="form-input" id="cfg-referral-input" placeholder="Ex: A1B2C3" maxlength="6" style="text-transform:uppercase">
+              <button class="btn btn-primary" onclick="redeemReferralCode()">Resgatar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cr-section-head">
+            <div class="cr-section-icon">🌐</div>
+            <div class="cr-section-text"><div class="cr-section-title">Comunidade & Redes Sociais</div><div class="cr-section-sub">Fale com a gente fora do jogo</div></div>
+          </div>
+          <div id="cfg-social-links" class="social-bar"></div>
+        </div>
+
+        <div class="card" style="border-color:rgba(140,22,33,0.28) !important">
+          <div class="cr-section-head">
+            <div class="cr-section-icon" style="background:linear-gradient(150deg,rgba(140,22,33,0.22),rgba(140,22,33,0.04));border-color:rgba(140,22,33,0.3)">🗑️</div>
+            <div class="cr-section-text"><div class="cr-section-title" style="color:var(--red)">Zona de Risco</div><div class="cr-section-sub">Esta ação é irreversível</div></div>
+          </div>
+          <button class="btn btn-danger" style="width:100%" onclick="resetGame()">⚠️ Resetar Personagem</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="panel" id="panel-feedback">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">💬 Enviar Feedback</div>
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select class="form-input" id="fb-type">
+              <option value="sugestao">💡 Sugestão</option>
+              <option value="bug">🐞 Bug / Erro</option>
+              <option value="elogio">💚 Elogio</option>
+              <option value="outro">✏️ Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título</label>
+            <input class="form-input" id="fb-title" maxlength="60" placeholder="Resuma em poucas palavras">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mensagem</label>
+            <textarea class="form-input" id="fb-msg" rows="4" maxlength="500" placeholder="Descreva com detalhes..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nota geral do sistema</label>
+            <div class="star-picker" id="fb-stars">
+              <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="submitFeedback()">📨 Enviar Feedback</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📬 Meu Histórico de Feedback</div>
+          <div id="fb-list" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto">
+            <div style="color:var(--text3);text-align:center;padding:20px">Nenhum feedback enviado ainda.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONVERSAS -->
+    <div class="panel" id="panel-conversas">
+      <div class="card-title" style="margin-bottom:0">💬 Conversas — Comunidades, Grupos e Mensagens</div>
+      <div id="conversas-social-bar"></div>
+      <div class="chat-shell">
+        <div class="comm-rail" id="comm-rail"></div>
+        <div class="chat-list-col" id="chat-list-col"></div>
+        <div class="chat-main-col" id="chat-main-col"></div>
+      </div>
+    </div>
+
+    <!-- MEU PERSONAGEM (FICHA DE RPG PERSONALIZADA) -->
+    <div class="panel" id="panel-meupersonagem">
+      <div class="card-title" style="margin-bottom:0">📖 Meu Personagem — Crie sua própria história</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">✍️ Identidade</div>
+          <div class="form-group"><label class="form-label">Nome do Personagem</label><input class="form-input" id="cs-name" placeholder="Ex: Aldric, o Errante"></div>
+          <div class="form-group"><label class="form-label">Classe / Título (livre)</label><input class="form-input" id="cs-class" placeholder="Ex: Cavaleiro Renegado"></div>
+          <div class="form-group"><label class="form-label">Aparência</label><textarea class="form-input" id="cs-appearance" rows="3" placeholder="Como seu personagem se parece?"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📜 História</div>
+          <div class="form-group"><textarea class="form-input" id="cs-backstory" rows="8" maxlength="2000" placeholder="Conte a origem, motivações e segredos do seu personagem..."></textarea></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✨ Habilidades</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <input class="form-input" id="cs-skill-name" placeholder="Nome da habilidade" style="flex:1;min-width:140px">
+          <input class="form-input" id="cs-skill-desc" placeholder="Descrição breve" style="flex:2;min-width:200px">
+          <button class="btn btn-success" onclick="addCustomSkill()">➕ Adicionar</button>
+        </div>
+        <div id="cs-skills-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveCharacterSheet()">💾 Salvar Ficha de Personagem</button>
+      <div class="card" id="cs-sheet-preview" style="display:none"></div>
+    </div>
+
+    <!-- PUBLICAÇÕES -->
+    <div class="panel" id="panel-publicacoes">
+      <div class="card">
+        <div style="display:flex;gap:12px">
+          <div class="user-avatar" id="post-compose-avatar" style="width:44px;height:44px;font-size:18px;flex-shrink:0">⚔️</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <textarea class="form-input" id="post-text" rows="3" placeholder="O que você está pensando, aventureiro?"></textarea>
+            <div id="post-image-preview"></div>
+            <div id="post-video-preview"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+              <div>
+                <input type="file" id="post-media-input" accept="image/*,video/*" capture="environment" style="display:none" onchange="handlePostMediaSelect(event)">
+                <button class="post-media-btn" onclick="document.getElementById('post-media-input').click()" title="Adicionar foto ou vídeo (câmera ou galeria)">
+                  <span class="nav-icon" data-icon="galeria" style="width:17px;height:17px"></span> Foto ou Vídeo
+                </button>
+                <button class="btn-sm btn-danger" id="post-image-clear" style="display:none" onclick="clearPostImage()">✕ Remover</button>
+                <button class="btn-sm btn-danger" id="post-video-clear" style="display:none" onclick="clearPostVideo()">✕ Remover</button>
+              </div>
+              <button class="btn btn-primary" id="post-publish-btn" onclick="createPost()">📤 Publicar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="posts-feed" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+
+    <!-- IA COMPANHEIRA -->
+    <div class="panel" id="panel-iacompanheira">
+      <div class="card" id="ai-setup-card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🤖</div>
+          <div class="cr-section-text"><div class="cr-section-title">Configurar sua IA Companheira</div><div class="cr-section-sub">Crie a sua própria IA — nome, personalidade, tudo do seu jeito</div></div>
+        </div>
+        <div class="grid2">
+          <div class="form-group"><label class="form-label">Nome da IA</label><input class="form-input" id="ai-cfg-name" placeholder="Ex: Luna, Kael, Nyx..." maxlength="24"></div>
+          <div class="form-group"><label class="form-label">Emoji/Avatar</label>
+            <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px" id="ai-cfg-avatars"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Idade</label><input class="form-input" id="ai-cfg-age" type="number" min="1" max="9999" placeholder="Ex: 21"></div>
+          <div class="form-group"><label class="form-label">Gênero</label>
+            <select class="form-input" id="ai-cfg-gender">
+              <option value="Feminino">Feminino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Não-binário">Não-binário</option>
+              <option value="Outro">Outro</option>
+              <option value="Prefiro não dizer">Prefiro não dizer</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Personalidade (como ela deve agir, falar, se comportar)</label><textarea class="form-input" id="ai-cfg-personality" rows="3" maxlength="600" placeholder="Ex: Engraçada, sarcástica, adora RPG e fala de forma bem curta e direta."></textarea></div>
+        <div class="form-group"><label class="form-label">Histórico / informações extras (opcional)</label><textarea class="form-input" id="ai-cfg-info" rows="3" maxlength="600" placeholder="Ex: Nasceu no reino de Crydan, é apaixonada por dragões, tem medo de água..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveAiCompanionConfig()">💾 Salvar e Conversar</button>
+      </div>
+
+      <div class="card" id="ai-key-card" style="display:none"></div>
+
+      <div class="card" id="ai-chat-card" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+          <div class="user-avatar" id="ai-chat-avatar" style="width:42px;height:42px;font-size:19px">🤖</div>
+          <div style="flex:1;min-width:0">
+            <div id="ai-chat-name" style="font-family:'Cinzel',serif;color:var(--gold2);font-size:15px">IA</div>
+            <div id="ai-chat-subtitle" style="font-size:11px;color:var(--text3)"></div>
+          </div>
+          <button class="btn-sm" onclick="switchAiTab('config')">⚙️ Editar</button>
+          <button class="btn-sm btn-danger" onclick="clearAiChatHistory()">🗑️ Limpar</button>
+        </div>
+        <div class="chat-messages" id="ai-chat-messages" style="max-height:420px;padding:4px 4px 12px"></div>
+        <div class="chat-input-bar" style="padding:10px 0 0;border-top:none">
+          <input class="form-input" id="ai-chat-input" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter'){sendAiMessage();}">
+          <button class="btn btn-primary" onclick="sendAiMessage()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÚSICAS -->
+    <div class="panel" id="panel-musicas">
+      <div class="card-title" style="margin-bottom:0">🎵 Músicas</div>
+      <div class="card" id="music-setup-card" style="display:none"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="form-input" id="music-search-input" placeholder="Buscar música, artista, banda..." onkeydown="if(event.key==='Enter'){searchMusic();}">
+        <button class="btn btn-primary" onclick="searchMusic()">🔎 Buscar</button>
+      </div>
+      <div class="chat-list-tabs" style="margin:4px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+        <div class="chat-list-tab active" id="music-tab-search" onclick="switchMusicTab('search')">🔎 Buscar</div>
+        <div class="chat-list-tab" id="music-tab-fav" onclick="switchMusicTab('fav')">❤️ Minhas Músicas</div>
+      </div>
+      <div id="music-results" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- JOGOS -->
+    <div class="panel" id="panel-jogos">
+      <div class="card">
+        <div class="cr-section-head">
+          <div class="cr-section-icon">🎮</div>
+          <div class="cr-section-text"><div class="cr-section-title">Central de Jogos</div><div class="cr-section-sub">Sozinho, com um amigo no mesmo aparelho, ou contra o computador</div></div>
+        </div>
+        <div id="games-hub-view">
+          <div class="frame-shop-grid" id="games-hub-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))"></div>
+        </div>
+        <div id="games-play-view" style="display:none">
+          <button class="btn-sm" onclick="closeGame()">← Voltar aos Jogos</button>
+          <div id="game-container" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- ATIVIDADE RECENTE (estilo barra lateral do Instagram) -->
+  <div id="activity-rail">
+    <div id="activity-rail-toggle" onclick="toggleActivityRail()" title="Atividade recente">📣</div>
+    <div id="activity-rail-panel">
+      <div class="activity-rail-header">
+        <span>📣 Atividade Recente</span>
+        <span class="activity-rail-close" onclick="toggleActivityRail()">✕</span>
+      </div>
+      <div id="activity-rail-list"></div>
+    </div>
+  </div>
+
+  <!-- BARRA DE PLAYER DE MÚSICA (global, flutuante) -->
+  <div id="music-player-bar" style="display:none">
+    <div id="yt-player"></div>
+    <div style="flex:1;min-width:0">
+      <div id="mp-title" style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+      <div id="mp-channel" style="font-size:11px;color:var(--text3)">—</div>
+    </div>
+    <button class="call-icon-btn" id="mp-mute" onclick="toggleMusicMute()" style="width:34px;height:34px;font-size:14px">🔊</button>
+    <input type="range" id="mp-volume" min="0" max="100" value="100" oninput="setMusicVolume(this.value)" style="width:70px" title="Volume">
+    <button class="call-icon-btn" id="mp-playpause" onclick="toggleMusicPlayPause()" style="width:38px;height:38px;font-size:15px">⏸️</button>
+    <button class="call-icon-btn" id="mp-like" onclick="toggleFavoriteCurrentSong()" style="width:38px;height:38px;font-size:15px">🤍</button>
+    <button class="call-icon-btn call-end" onclick="closeMusicPlayer()" style="width:38px;height:38px;font-size:15px">✕</button>
+  </div>
+</div><!-- /app-body -->
+
+<!-- ADMIN CONSOLE (login separado, protegido por senha) -->
+<div id="admin-header" style="display:none">
+  <div class="logo-icon">
+    <svg viewBox="0 0 64 64" width="100%" height="100%">
+      <defs>
+        <linearGradient id="logoGoldGradAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f0c040"/>
+          <stop offset="100%" stop-color="#a9780f"/>
+        </linearGradient>
+      </defs>
+      <path d="M32 4 L56 14 L56 32 C56 46 46 56 32 60 C18 56 8 46 8 32 L8 14 Z" fill="url(#logoGoldGradAdmin)" stroke="#3a2a05" stroke-width="2"/>
+      <path d="M32 4 L56 14 L56 32 C56 46 46 56 32 60 Z" fill="#000" opacity="0.12"/>
+      <path d="M20 46 Q32 28 44 46" fill="none" stroke="#3a2a05" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 12 L36 30 L32 52 L28 30 Z" fill="#3a2a05"/>
+      <path d="M22 26 L42 26 L38 31 L26 31 Z" fill="#3a2a05"/>
+      <circle cx="32" cy="12" r="3.5" fill="#3a2a05"/>
+    </svg>
+  </div>
+  <div>
+    <div class="logo-text">Crydan</div>
+    <div class="logo-sub">PAINEL ADMINISTRATIVO</div>
+  </div>
+  <div class="header-right">
+    <span class="adm-badge">SESSÃO ADM ATIVA</span>
+    <button class="btn-sm btn-danger" onclick="adminLogout()">Sair da Administração</button>
+  </div>
+</div>
+<div id="admin-body" style="display:none">
+  <div id="admin-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Administração</div>
+      <div class="nav-item admin-nav active" role="button" tabindex="0" aria-current="page" onclick="adminNavigate('dashboard')"><span class="nav-icon">📊</span>Painel</div>
+      <div class="nav-item admin-nav" role="button" tabindex="0" onclick="adminNavigate('tools')"><span class="nav-icon">🛠️</span>Ferramentas</div>
+      <div class="nav-item admin-nav" role="button" tabindex="0" onclick="adminNavigate('logs')"><span class="nav-icon">📋</span>Logs</div>
+      <div class="nav-item admin-nav" role="button" tabindex="0" onclick="adminNavigate('feedback')"><span class="nav-icon">📮</span>Feedback</div>
+      <div class="nav-item admin-nav" role="button" tabindex="0" onclick="adminNavigate('posts')"><span class="nav-icon">📰</span>Publicações</div>
+      <div class="nav-item admin-nav" role="button" tabindex="0" onclick="adminNavigate('guildclass')"><span class="nav-icon">🛡️</span>Guildas &amp; Classes</div>
+    </div>
+  </div>
+  <div id="admin-bottom-nav">
+    <div class="mobile-cat-item active" data-adm-panel="dashboard" role="button" tabindex="0" aria-current="page" onclick="adminNavigate('dashboard')"><span class="nav-icon" data-icon="inicio"></span><span class="mobile-nav-label">Painel</span></div>
+    <div class="mobile-cat-item" data-adm-panel="tools" role="button" tabindex="0" onclick="adminNavigate('tools')"><span class="nav-icon" data-icon="ferramentas"></span><span class="mobile-nav-label">Ferramentas</span></div>
+    <div class="mobile-cat-item" data-adm-panel="logs" role="button" tabindex="0" onclick="adminNavigate('logs')"><span class="nav-icon" data-icon="logs"></span><span class="mobile-nav-label">Logs</span></div>
+    <div class="mobile-cat-item" data-adm-panel="feedback" role="button" tabindex="0" onclick="adminNavigate('feedback')"><span class="nav-icon" data-icon="feedback"></span><span class="mobile-nav-label">Feedback</span></div>
+    <div class="mobile-cat-item" data-adm-panel="posts" role="button" tabindex="0" onclick="adminNavigate('posts')"><span class="nav-icon" data-icon="publicacoes"></span><span class="mobile-nav-label">Publicações</span></div>
+    <div class="mobile-cat-item" data-adm-panel="guildclass" role="button" tabindex="0" onclick="adminNavigate('guildclass')"><span class="nav-icon" data-icon="guildas"></span><span class="mobile-nav-label">Guildas</span></div>
+  </div>
+  <div id="admin-main">
+
+    <!-- ADM DASHBOARD -->
+    <div class="panel active" id="admpanel-dashboard">
+      <div class="cr-section-head" style="margin-bottom:4px">
+        <div class="cr-section-icon">🛡️</div>
+        <div class="cr-section-text"><div class="cr-section-title">Painel de Administração</div><div class="cr-section-sub">Área restrita — ações afetam os dados salvos de verdade</div></div>
+        <span class="adm-badge" style="margin-left:auto">ADM</span>
+      </div>
+
+      <div class="grid4" id="adm-stats-grid"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">💰 Economia</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Jogador</label><input class="form-input" id="adm-player" placeholder="Nome ou @usuário do jogador"></div>
+            <div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="adm-amount" type="number" min="1" placeholder="Cry"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-success" style="flex:1" onclick="admGiveCry()">+ Dar Cry</button>
+              <button class="btn btn-danger" style="flex:1" onclick="admTakeCry()">- Tirar Cry</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚔️ Personagem / Moderação</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Jogador</label><input class="form-input" id="adm-char-player" placeholder="Nome ou @usuário do jogador"></div>
+            <div class="form-group"><label class="form-label">XP a Conceder</label><input class="form-input" id="adm-xp" type="number" min="1" placeholder="XP"></div>
+            <button class="btn btn-primary" onclick="admGiveXP()">⭐ Dar XP</button>
+            <div class="form-group"><label class="form-label">Motivo (banimento/suspensão — obrigatório)</label><input class="form-input" id="adm-ban-reason" placeholder="Ex: comportamento tóxico no chat"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-danger" style="flex:1" onclick="admBanPlayer()">🚫 Banir (bloqueia e-mail)</button>
+              <button class="btn btn-success" style="flex:1" onclick="admUnbanPlayer()">✅ Desbanir</button>
+            </div>
+            <div class="form-group"><label class="form-label">Suspender por</label>
+              <select class="form-input" id="adm-suspend-duration">
+                <option value="1">1 dia</option>
+                <option value="3">3 dias</option>
+                <option value="7" selected>7 dias</option>
+                <option value="30">30 dias</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-gold" style="flex:1" onclick="admSuspendPlayer()">⏳ Suspender</button>
+              <button class="btn btn-success" style="flex:1" onclick="admLiftSuspension()">✅ Levantar suspensão</button>
+            </div>
+            <button class="btn btn-gold" style="width:100%;margin-top:4px" onclick="admResetPlayerAccount()">🔄 Resetar progresso (mantém login)</button>
+            <button class="btn btn-danger" style="width:100%;border-color:var(--red)" onclick="admDeleteAccount()">🗑️ Excluir conta e bloquear e-mail</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📢 Anúncios</div>
+          <div class="form-group"><label class="form-label">Mensagem Global</label><input class="form-input" id="adm-msg" placeholder="Mensagem para todos..."></div>
+          <button class="btn btn-info" style="width:100%" onclick="admAnnounce()">📢 Anunciar</button>
+        </div>
+        <div class="card">
+          <div class="card-title">🎉 Eventos</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-gold" onclick="admStartEvent('xp')">⭐ Evento 2x XP</button>
+            <button class="btn btn-success" onclick="admStartEvent('gold')">💰 Evento 2x Cry</button>
+            <button class="btn btn-purple" onclick="admStartEvent('drop')">🎁 Evento Drops Raros</button>
+            <div id="adm-active-event" style="font-size:11px;color:var(--text3);text-align:center"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💎 Crystar — Chave PIX</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Chave PIX que aparece pro jogador</label><input class="form-input" id="adm-crystar-pix-key" placeholder="CPF, e-mail, telefone ou chave aleatória" value="${escapeHtml(getPixKey())}"></div>
+            <button class="btn btn-primary" onclick="admSaveCrystarPixKey()">💾 Salvar chave PIX</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💎 Crystar — Conceder na conta</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Jogador</label><input class="form-input" id="adm-crystar-player" placeholder="Nome ou @usuário do jogador"></div>
+            <div class="form-group"><label class="form-label">Quantidade (negativo pra remover)</label><input class="form-input" id="adm-crystar-amount" type="number" placeholder="Ex: 500 ou -200"></div>
+            <div class="form-group"><label class="form-label">Motivo (opcional, fica registrado)</label><input class="form-input" id="adm-crystar-reason" placeholder="Ex: bônus de sorteio, compensação por bug"></div>
+            <button class="btn btn-success" onclick="admGiveCrystals()">💎 Conceder Crystar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">✏️ Editar Conta do Jogador</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Deixe em branco o que não quiser alterar. Se o jogador estiver online agora, a mudança pode demorar até a próxima sincronização dele pra aparecer.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input class="form-input" id="adm-edit-player" placeholder="Nome ou @usuário atual do jogador" style="flex:1">
+          <button class="btn" onclick="admLoadPlayerForEdit()">Carregar</button>
+        </div>
+        <div id="adm-edit-player-form" style="display:none">
+          <div class="grid2" style="gap:8px">
+            <div class="form-group"><label class="form-label">Novo nome de exibição</label><input class="form-input" id="adm-edit-name"></div>
+            <div class="form-group"><label class="form-label">Novo @usuário</label><input class="form-input" id="adm-edit-username"></div>
+            <div class="form-group"><label class="form-label">URL da nova foto de perfil</label><input class="form-input" id="adm-edit-avatar"></div>
+            <div class="form-group"><label class="form-label">Vitórias em batalha</label><input class="form-input" id="adm-edit-wins" type="number"></div>
+            <div class="form-group"><label class="form-label">Derrotas em batalha</label><input class="form-input" id="adm-edit-losses" type="number"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="admSavePlayerEdit()">💾 Salvar alterações</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🛡️ Renomear Guilda</div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="adm-guild-search" placeholder="Nome ou tag atual da guilda" style="flex:1">
+          <input class="form-input" id="adm-guild-newname" placeholder="Novo nome" style="flex:1">
+          <button class="btn btn-primary" onclick="admRenameGuild()">Renomear</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔎 Ver Jogador — dinheiro, nível, casas e empresas</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input class="form-input" id="adm-lookup-player" placeholder="Nome ou @usuário do jogador" style="flex:1">
+          <button class="btn btn-primary" onclick="admLookupPlayer()">Buscar</button>
+        </div>
+        <div id="adm-lookup-result"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💎 Crystar — Pagamentos Pendentes</div>
+        <div id="adm-crystar-purchases-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👥 Lista de Jogadores</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input class="form-input" id="adm-player-search" placeholder="Buscar por nome ou @usuário..." oninput="admSearchPlayers()" style="flex:1">
+        </div>
+        <div id="adm-players-list"></div>
+      </div>
+    </div>
+
+    <!-- ADM TOOLS -->
+    <div class="panel" id="admpanel-tools">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">💾 Dados</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-primary" onclick="admExportData()">⬇️ Exportar dados (JSON)</button>
+            <input type="file" id="adm-import-file" accept="application/json" style="display:none" onchange="admImportData(event)">
+            <button class="btn" onclick="document.getElementById('adm-import-file').click()">⬆️ Importar dados (JSON)</button>
+            <div style="font-size:11px;color:var(--text3)">Exporta/importa o save completo salvo neste navegador.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🧹 Moderação de Conteúdo Social</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-danger" onclick="admClearCommunities()">🏰 Limpar todas as Comunidades</button>
+            <button class="btn btn-danger" onclick="admClearChats()">💬 Limpar Conversas/Grupos</button>
+            <button class="btn btn-danger" onclick="admClearPosts()">📰 Limpar Publicações</button>
+            <button class="btn btn-danger" onclick="admClearFeedback()">📮 Limpar Feedbacks</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 Manutenção de Logs</div>
+          <button class="btn" style="width:100%" onclick="admClearLogs()">🗑️ Limpar Logs do Sistema</button>
+        </div>
+        <div class="card">
+          <div class="card-title">⚠️ Zona de Perigo</div>
+          <button class="btn btn-danger" style="width:100%" onclick="admResetOwnSessionAccount()">💣 Resetar MINHA sessão de teste</button>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Apaga o personagem da conta ATUALMENTE logada neste dispositivo (a sua, não a de outro jogador). Irreversível. Pra resetar o progresso de outro jogador, use "Resetar progresso" no Painel.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔗 Links & Comunidade</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Link da Comunidade do WhatsApp</label><input class="form-input" id="adm-link-wa-community" placeholder="https://chat.whatsapp.com/..."></div>
+            <div class="form-group"><label class="form-label">Número de WhatsApp (com DDI+DDD)</label><input class="form-input" id="adm-link-wa-number" placeholder="5561999999999"></div>
+            <div class="form-group"><label class="form-label">Instagram — Crydan</label><input class="form-input" id="adm-link-ig-crydan" placeholder="crydan.brasil"></div>
+            <div class="form-group"><label class="form-label">Instagram — Pessoal</label><input class="form-input" id="adm-link-ig-pessoal" placeholder="dantali4n"></div>
+            <button class="btn btn-primary" onclick="admSaveSocialLinks()">💾 Salvar Links</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📢 Mensagem do Dia & Cadastros</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Mensagem do Dia (aparece para o jogador no Início)</label><textarea class="form-input" id="adm-motd" rows="2" placeholder="Ex: Evento especial este fim de semana!"></textarea></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" style="flex:1" onclick="admSaveMotd()">💾 Salvar Mensagem</button>
+              <button class="btn" style="flex:1" onclick="admClearMotd()">🗑️ Remover</button>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-top:4px">
+              <input type="checkbox" id="adm-block-signups" onchange="admToggleBlockSignups(this.checked)"> Bloquear novos cadastros de jogadores
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">👑 Gerenciar Administradores</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="form-group"><label class="form-label">Jogador</label><input class="form-input" id="adm-admin-target" placeholder="Nome ou @usuário"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" style="flex:1" onclick="admPromoteAdmin()">⬆️ Tornar Admin</button>
+              <button class="btn btn-danger" style="flex:1" onclick="admDemoteAdmin()">⬇️ Remover Admin</button>
+            </div>
+            <div style="font-size:11px;color:var(--crydan-text-muted)">Admins atuais:</div>
+            <div id="adm-admins-list" style="font-size:12px;color:var(--text2)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧭 Moderação Detalhada — Comunidades e Conversas</div>
+        <div id="adm-social-mod-list"></div>
+      </div>
+    </div>
+
+    <!-- ADM LOGS -->
+    <div class="panel" id="admpanel-logs">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0">
+          🕵️ Auditoria de Ações Administrativas
+        </div>
+        <div style="font-size:11px;color:var(--crydan-text-muted);margin:6px 0">Registro real de todas as ações de administração feitas por qualquer admin (dar Cry, banir, anunciar...), guardado no banco de dados.</div>
+        <div id="adm-audit-log" style="display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0">
+          📋 Logs do Sistema (deste dispositivo)
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin:8px 0">
+          <button class="btn-sm" onclick="admClearLogs()">🗑️ Limpar</button>
+        </div>
+        <div id="system-logs" style="display:flex;flex-direction:column;gap:4px;max-height:500px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px"></div>
+      </div>
+    </div>
+
+    <!-- ADM FEEDBACK -->
+    <div class="panel" id="admpanel-feedback">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0">📮 Feedback dos Jogadores</div>
+        <div style="font-size:11px;color:var(--crydan-text-muted);margin:6px 0">Todo feedback enviado por qualquer jogador aparece aqui — puxado direto do banco de dados.</div>
+        <div id="adm-feedback-list" style="display:flex;flex-direction:column;gap:8px;max-height:600px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="admpanel-posts">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0">📰 Publicações do Feed</div>
+        <div style="font-size:11px;color:var(--text3);margin:6px 0">Todas as publicações de todos os jogadores, mais recentes primeiro. Remover aqui apaga de verdade pra todo mundo.</div>
+        <div id="adm-posts-list" style="display:flex;flex-direction:column;gap:8px;max-height:650px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ADM GUILDAS & CLASSES -->
+    <div class="panel" id="admpanel-guildclass">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">🛡️ Pedidos de Criação de Guilda</div>
+          <div id="adm-guild-requests-list" style="display:flex;flex-direction:column;gap:10px;max-height:600px;overflow-y:auto">Carregando...</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚔️ Classes do Jogo</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Só as classes desta lista podem ser escolhidas pelos jogadores. Remover uma classe daqui não afeta quem já a escolheu.</div>
+          <div id="adm-classes-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">Carregando...</div>
+          <div class="form-group"><label class="form-label">ID (minúsculo, sem espaço)</label><input class="form-input" id="adm-class-id" placeholder="ex: bardo"></div>
+          <div class="form-group"><label class="form-label">Nome de exibição</label><input class="form-input" id="adm-class-name" placeholder="ex: Bardo"></div>
+          <div class="form-group"><label class="form-label">Ícone (emoji)</label><input class="form-input" id="adm-class-icon" placeholder="🎵"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="admAddClass()">➕ Adicionar Classe</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">✔️ Selo de Verificação</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Azul = administrador · Verde = parceria · Vermelho = dono · Roxo = subdono</div>
+          <div class="form-group"><label class="form-label">Jogador</label><input class="form-input" id="adm-badge-target" placeholder="Nome ou @usuário"></div>
+          <div class="form-group">
+            <label class="form-label">Selo</label>
+            <select class="form-input" id="adm-badge-type">
+              <option value="admin">🔵 Administrador</option>
+              <option value="partner">🟢 Parceria</option>
+              <option value="owner">🔴 Dono</option>
+              <option value="subowner">🟣 Subdono</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" style="flex:1" onclick="admSetBadge()">✔️ Conceder Selo</button>
+            <button class="btn btn-danger" style="flex:1" onclick="admRemoveBadge()">✕ Remover Selo</button>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column:1/-1">
+          <div class="card-title">🎬 Animações de Perfil (Avatar &amp; Banner)</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:10px">
+            Essas são as únicas decorações de avatar/banner animadas que os jogadores conseguem usar — eles não têm mais como subir arquivo próprio, só o que estiver cadastrado aqui.
+          </div>
+          <div id="adm-lottie-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px">Carregando...</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid var(--border);padding-top:12px">
+            <div>
+              <div class="cr-cfg-block-title" style="margin-bottom:6px">➕ Adicionar por link (LottieFiles)</div>
+              <div class="form-group"><input class="form-input" id="adm-lottie-name" placeholder="Nome da animação"></div>
+              <div class="form-group">
+                <select class="form-input" id="adm-lottie-category">
+                  <option value="avatar">Moldura de Avatar</option>
+                  <option value="banner">Animação de Banner</option>
+                </select>
+              </div>
+              <div class="form-group"><input class="form-input" id="adm-lottie-url" placeholder="https://.../animacao.json"></div>
+              <button class="btn btn-primary" style="width:100%" onclick="admAddLottie()">Adicionar por Link</button>
+            </div>
+            <div>
+              <div class="cr-cfg-block-title" style="margin-bottom:6px">📁 Adicionar do computador</div>
+              <div class="form-group"><input class="form-input" id="adm-upload-name" placeholder="Nome da animação"></div>
+              <div class="form-group">
+                <select class="form-input" id="adm-upload-category">
+                  <option value="avatar">Moldura de Avatar</option>
+                  <option value="banner">Animação de Banner</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <input type="file" id="adm-upload-file" accept=".json,.lottie,video/mp4,video/webm,image/gif" style="display:none" onchange="admUploadAnimFile(event)">
+                <button class="btn" style="width:100%" onclick="document.getElementById('adm-upload-file').click()">📁 Escolher Arquivo</button>
+              </div>
+              <div id="adm-upload-status" style="font-size:11px;color:var(--text3)">Aceita: .json/.lottie (Lottie), .mp4/.webm (vídeo) ou .gif</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admin-main -->
+</div><!-- /admin-body -->
+
+
+<!-- JANELA MODAL DE LOGIN/CADASTRO (Supabase) -->
+<div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+  <div style="background: var(--bg2); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--gold3); position: relative;">
+    <button onclick="closeLoginModalToGate()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: var(--text2); font-size: 24px; cursor: pointer;">&times;</button>
+
+    <h2 id="login-modal-title" style="color: var(--gold2); margin-bottom: 20px; font-family:'Cinzel',serif">Entrar no Crydan</h2>
+
+    <p id="login-forgot-hint" style="display:none; font-size: 12px; color: var(--text3); margin-bottom: 10px;">Digite seu e-mail e enviaremos um link para você criar uma senha nova.</p>
+
+    <input type="email" id="login-email" placeholder="Seu e-mail" class="form-input" style="margin: 6px 0">
+    <div class="pw-wrap" style="margin: 6px 0">
+      <input type="password" id="login-password" placeholder="Sua senha" class="form-input" style="margin:0">
+      <button type="button" class="pw-toggle" onclick="togglePwVisibility('login-password', this)" aria-label="Mostrar senha">👁️</button>
+    </div>
+    <div class="pw-wrap" id="login-password-confirm-wrap" style="margin: 6px 0; display:none">
+      <input type="password" id="login-password-confirm" placeholder="Confirme sua senha" class="form-input" style="margin:0">
+      <button type="button" class="pw-toggle" onclick="togglePwVisibility('login-password-confirm', this)" aria-label="Mostrar senha">👁️</button>
+    </div>
+
+    <p id="login-msg" style="color: var(--red); font-size: 13px; min-height: 20px;"></p>
+
+    <button onclick="handleAuth()" id="btn-auth-action" class="btn btn-primary" style="width: 100%; margin-top: 6px;">ENTRAR</button>
+
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0 12px">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:11px;color:var(--text3)">ou continue com</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="signInWithOAuth('google')" class="btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3c-7.4 0-13.8 4-17.7 9.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.5C29.6 36.6 27 37.5 24 37.5c-5.2 0-9.6-3.3-11.3-8l-6.6 5.1C9.9 40.9 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.5C41.9 36.3 45 30.7 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
+        <span>Entrar com Google</span>
+      </button>
+      <button onclick="signInWithOAuth('discord')" class="btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#5865F2;border-color:#5865F2;color:#fff">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.057c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.955 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.946 2.419-2.157 2.419z"/></svg>
+        <span>Entrar com Discord</span>
+      </button>
+    </div>
+
+    <p id="forgot-password-row" style="margin-top: 10px; font-size: 12px;">
+      <a href="#" onclick="toggleForgotMode(); return false;" style="color: var(--text3); text-decoration: underline;">Esqueci minha senha</a>
+    </p>
+
+    <p id="toggle-signup-row" style="margin-top: 15px; font-size: 13px; color: var(--text3);">
+      <span id="toggle-text">Não tem conta?</span>
+      <a href="#" onclick="toggleMode()" style="color: var(--gold2); text-decoration: none; font-weight: bold;">Clique aqui</a>
+    </p>
+  </div>
+</div>
+
+<!-- JANELA MODAL DE NOVA SENHA (aberta automaticamente ao clicar no link do e-mail de recuperação) -->
+<div id="newpass-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center;">
+  <div style="background: var(--bg2); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--gold3);">
+    <h2 style="color: var(--gold2); margin-bottom: 8px; font-family:'Cinzel',serif">Criar Nova Senha</h2>
+    <p style="font-size: 12px; color: var(--text3); margin-bottom: 16px;">Você clicou no link de recuperação. Defina sua nova senha abaixo.</p>
+
+    <div class="pw-wrap" style="margin: 6px 0">
+      <input type="password" id="newpass-1" placeholder="Nova senha" class="form-input" style="margin:0">
+      <button type="button" class="pw-toggle" onclick="togglePwVisibility('newpass-1', this)" aria-label="Mostrar senha">👁️</button>
+    </div>
+    <div class="pw-wrap" style="margin: 6px 0">
+      <input type="password" id="newpass-2" placeholder="Confirme a nova senha" class="form-input" style="margin:0">
+      <button type="button" class="pw-toggle" onclick="togglePwVisibility('newpass-2', this)" aria-label="Mostrar senha">👁️</button>
+    </div>
+
+    <p id="newpass-msg" style="color: var(--red); font-size: 13px; min-height: 20px;"></p>
+
+    <button onclick="handleSetNewPassword()" class="btn btn-primary" style="width: 100%; margin-top: 6px;">SALVAR NOVA SENHA</button>
+  </div>
+</div>
+
+</body>
+</html>
