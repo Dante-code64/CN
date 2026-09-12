@@ -27,3 +27,25 @@ export const STORY_COLORS = ['#8c1621', '#5b3a86', '#1a5276', '#1e5c3a', '#7a4a1
 
 export const STORY_REACT_EMOJIS = ['❤️', '🔥', '😂', '😮', '👏', '✦'];
 
+
+export const NOTIF_ICONS = {
+  friend_request: '🤝', friend_accept: '🤝',
+  pvp_challenge: '⚔️', pvp_accept: '⚔️', pvp_decline: '⚔️', pvp_result: '🏆',
+  guild_invite: '🛡️', guild_invite_accept: '🛡️',
+  guild_join_request: '🛡️', guild_join_accept: '🛡️', guild_join_decline: '🛡️',
+  post_like: '❤️', follow: '⭐', message: '💬', pix: '✦',
+};
+
+export const ONBOARDING_STEPS = [
+  { icon:'👋', title:'Bem-vindo(a) à Crydan!', text:'Seu personagem já foi criado. Vamos dar uma volta rápida pra você conhecer tudo que tem por aqui.' },
+  { icon:'🏠', title:'Início', text:'Sua tela principal. Mostra seu nível, vida, energia, fome e os avisos mais recentes.' },
+  { icon:'⚔️', title:'RPG Medieval', text:'Vá em Batalha pra lutar contra monstros, Missões pra ganhar recompensas, e Guildas pra jogar em grupo. Tudo dá XP e Cry (a moeda do jogo).' },
+  { icon:'🏦', title:'Economia', text:'No Banco você guarda seu Cry com segurança. No Mercado, Casas e Empresas você gasta e investe o que ganhou.' },
+  { icon:'💬', title:'Conversas e Publicações', text:'Crie comunidades, converse com pessoas, mande fotos e vídeos, e publique o que quiser no feed.' },
+  { icon:'🤖', title:'IA Companheira', text:'Crie a sua própria IA: escolha nome, idade, gênero e a personalidade dela. Cada pessoa pode ter uma IA diferente!' },
+  { icon:'🎮', title:'Central de Jogos', text:'Jogo da Velha, Xadrez, Termo, Quiz e muito mais — sozinho, com um amigo ou contra o computador.' },
+  { icon:'🖼️', title:'Galeria', text:'Deixe seu avatar único com molduras animadas — de anéis coloridos até um dragão de verdade voando ao redor da sua foto.' },
+  { icon:'🎵', title:'Músicas', text:'Busque e toque músicas direto dentro do app, sem sair pra nenhum site.' },
+  { icon:'🔧', title:'Config', text:'Mude o tema, a cor de destaque, a fonte, o fundo inteiro do app e muito mais — do seu jeito.' },
+  { icon:'✨', title:'Pronto!', text:'É isso! Agora é só explorar. Boa jornada, aventureiro(a)!' },
+];
