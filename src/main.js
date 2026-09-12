@@ -9,10 +9,11 @@ import {
   BANNER_PRESETS, AVATAR_FRAMES_SPECIAL, AVATAR_FRAMES_PREMIUM, AVATAR_FRAME_RING_CUSTOM,
   AVATAR_FRAME_CUSTOM_IMAGE, AVATAR_FRAMES, FRAME_CATEGORIES, DRAGON_FRAME_SVG,
   BANNER_DRAGON_SVG, BANNER_ANIMS, LINK_PLATFORMS, EVENTS_DATA, ICONS,
-  CLASS_DESCRIPTIONS, BATTLE_COOLDOWN, MONSTERS
+  CLASS_DESCRIPTIONS, BATTLE_COOLDOWN, MONSTERS, AVATAR_PARTICLE_PRESETS,
+  PARTICLE_BANNER_PRESETS, MAP_COLS, MAP_ROWS
 } from './rpg/data.js';
 import { USERNAME_REGEX, OAUTH_PROVIDERS } from './auth/constants.js';
-import { FB_TYPE_LABEL, RTC_CONFIG, DEVICE_VIEWS, MOBILE_NAV_CATEGORIES, MOBILE_PANEL_TO_CAT, STORY_COLORS, STORY_REACT_EMOJIS } from './ui/constants.js';
+import { FB_TYPE_LABEL, RTC_CONFIG, DEVICE_VIEWS, MOBILE_NAV_CATEGORIES, MOBILE_PANEL_TO_CAT, STORY_COLORS, STORY_REACT_EMOJIS, NOTIF_ICONS, ONBOARDING_STEPS } from './ui/constants.js';
 import { GAMES_LIST, BOT_DIFFICULTIES, TERMO_WORDS, FORCA_WORDS, HANGMAN_STAGES, QUIZ_QUESTIONS, MEMORY_EMOJIS, SIMON_COLORS } from './games/data.js';
 
 // Ponto de entrada único do Crydan -- gerado a partir da fusão dos 3 blocos
@@ -167,13 +168,6 @@ function renderNavIcons(root) {
 // ══════════════════════════════════════════
 let notifState = { list: [], unread: 0, channel: null, loaded: false };
 
-const NOTIF_ICONS = {
-  friend_request: '🤝', friend_accept: '🤝',
-  pvp_challenge: '⚔️', pvp_accept: '⚔️', pvp_decline: '⚔️', pvp_result: '🏆',
-  guild_invite: '🛡️', guild_invite_accept: '🛡️',
-  guild_join_request: '🛡️', guild_join_accept: '🛡️', guild_join_decline: '🛡️',
-  post_like: '❤️', follow: '⭐', message: '💬', pix: '✦',
-};
 
 // Registra o service worker assim que o site carrega, mesmo antes do
 // jogador logar ou ativar notificações — é isso que permite o Crydan
@@ -1723,147 +1717,6 @@ function applyFont(fontId, persist = true) {
 }
 
 // ── MOLDURA DE AVATAR (frames animados estilo Discord) ──
-const AVATAR_PARTICLE_PRESETS = {
-  estelar: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 16, density: { enable: true, area: 300 } },
-      color: { value: ['#ffffff', '#8fd6ff'] },
-      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1, sync: false } },
-      size: { value: { min: 0.8, max: 1.8 } },
-      move: { enable: true, speed: 0.4, random: true, outModes: { default: 'bounce' } }
-    },
-    detectRetina: true
-  },
-  vulcanica: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 14, density: { enable: true, area: 300 } },
-      color: { value: ['#ff5b3d', '#ffb347'] },
-      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1.2, sync: false } },
-      size: { value: { min: 1, max: 2.2 } },
-      move: { enable: true, speed: 0.6, direction: 'top', outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#ff6a3d', blur: 5 }
-    },
-    detectRetina: true
-  },
-  espectral: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 14, density: { enable: true, area: 300 } },
-      color: { value: ['#9b59ff', '#4dffb8'] },
-      opacity: { value: { min: 0.2, max: 0.75 }, animation: { enable: true, speed: 0.8, sync: false } },
-      size: { value: { min: 1, max: 2.4 } },
-      move: { enable: true, speed: 0.3, random: true, outModes: { default: 'bounce' } }
-    },
-    detectRetina: true
-  },
-  gelo: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 15, density: { enable: true, area: 300 } },
-      color: { value: ['#bfe9ff', '#ffffff'] },
-      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 0.9, sync: false } },
-      size: { value: { min: 1, max: 2.4 } },
-      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#bfe9ff', blur: 4 }
-    },
-    detectRetina: true
-  },
-  dourada: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 16, density: { enable: true, area: 300 } },
-      color: { value: ['#f0c040', '#d4a017', '#ffe9a8'] },
-      opacity: { value: { min: 0.3, max: 1 }, animation: { enable: true, speed: 1.1, sync: false } },
-      size: { value: { min: 0.9, max: 2 } },
-      move: { enable: true, speed: 0.45, random: true, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#f0c040', blur: 5 }
-    },
-    detectRetina: true
-  },
-  sombria: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 14, density: { enable: true, area: 300 } },
-      color: { value: ['#5c0f1a', '#2a0a1a', '#8c1621'] },
-      opacity: { value: { min: 0.25, max: 0.8 }, animation: { enable: true, speed: 0.7, sync: false } },
-      size: { value: { min: 1.2, max: 2.6 } },
-      move: { enable: true, speed: 0.3, random: true, outModes: { default: 'bounce' } }
-    },
-    detectRetina: true
-  },
-  eletrica: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 12, density: { enable: true, area: 300 } },
-      color: { value: ['#7fe8ff', '#fdf565', '#ffffff'] },
-      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 2.4, sync: false } },
-      size: { value: { min: 0.8, max: 2 } },
-      move: { enable: true, speed: 1.1, random: true, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#7fe8ff', blur: 6 }
-    },
-    detectRetina: true
-  },
-  prisma: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 16, density: { enable: true, area: 300 } },
-      color: { value: ['#ff6bcb', '#7fd8f0', '#f0e256', '#8fff9e', '#c58bff'] },
-      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 1.3, sync: false } },
-      size: { value: { min: 0.9, max: 2.2 } },
-      move: { enable: true, speed: 0.5, random: true, outModes: { default: 'bounce' } }
-    },
-    detectRetina: true
-  },
-  arcana: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 13, density: { enable: true, area: 300 } },
-      color: { value: ['#a76bff', '#6531c9', '#d9b8ff'] },
-      opacity: { value: { min: 0.3, max: 0.95 }, animation: { enable: true, speed: 0.9, sync: false } },
-      size: { value: { min: 1, max: 2.4 } },
-      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#a76bff', blur: 5 }
-    },
-    detectRetina: true
-  },
-  brasa: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 15, density: { enable: true, area: 300 } },
-      color: { value: ['#ff8a1a', '#fff45c', '#e8432b'] },
-      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 1.1, sync: false } },
-      size: { value: { min: 1, max: 2.4 } },
-      move: { enable: true, speed: 0.7, direction: 'top', outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#ff8a1a', blur: 6 }
-    },
-    detectRetina: true
-  },
-  celeste: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 14, density: { enable: true, area: 300 } },
-      color: { value: ['#ffffff', '#fff3d0', '#ffe9a8'] },
-      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 0.7, sync: false } },
-      size: { value: { min: 1, max: 2.2 } },
-      move: { enable: true, speed: 0.3, direction: 'top', random: true, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#fff3d0', blur: 5 }
-    },
-    detectRetina: true
-  },
-  venenosa: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 13, density: { enable: true, area: 300 } },
-      color: { value: ['#7cff5c', '#3a8c1a', '#c8ff9e'] },
-      opacity: { value: { min: 0.25, max: 0.85 }, animation: { enable: true, speed: 0.8, sync: false } },
-      size: { value: { min: 1.2, max: 2.6 } },
-      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } }
-    },
-    detectRetina: true
-  }
-};
 let _avatarFxContainers = {};
 function mountAvatarParticles(wrap, presetKey) {
   if (!wrap.id) wrap.id = 'afx-' + Math.random().toString(36).slice(2, 9);
@@ -2004,70 +1857,6 @@ function applyAvatarFrame(id, persist = true) {
 
 // ── ANIMAÇÃO DE BANNER: partículas reais via tsParticles (motor gratuito,
 //    o mesmo tipo de biblioteca usado em landing pages profissionais) ──
-const PARTICLE_BANNER_PRESETS = {
-  particulas: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 36, density: { enable: true, area: 900 } },
-      color: { value: ['#f0c040', '#ffffff', '#9b59ff'] },
-      shape: { type: 'circle' },
-      opacity: { value: { min: 0.15, max: 0.7 }, animation: { enable: true, speed: 0.6, sync: false } },
-      size: { value: { min: 1, max: 2.6 } },
-      move: { enable: true, speed: 0.5, direction: 'top', random: true, straight: false, outModes: { default: 'out' } }
-    },
-    detectRetina: true
-  },
-  neve: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 55, density: { enable: true, area: 800 } },
-      color: { value: '#ffffff' },
-      shape: { type: 'circle' },
-      opacity: { value: { min: 0.4, max: 0.9 } },
-      size: { value: { min: 1, max: 3.5 } },
-      move: { enable: true, speed: { min: 0.6, max: 1.6 }, direction: 'bottom', straight: false, drift: 0.4, outModes: { default: 'out' } }
-    },
-    detectRetina: true
-  },
-  brasassubindo: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 24, density: { enable: true, area: 900 } },
-      color: { value: ['#ff5b3d', '#ffb347', '#ff8b3d'] },
-      shape: { type: 'circle' },
-      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1, sync: false } },
-      size: { value: { min: 1, max: 3 } },
-      move: { enable: true, speed: { min: 0.8, max: 2 }, direction: 'top', straight: false, random: true, outModes: { default: 'out' } },
-      shadow: { enable: true, color: '#ff6a3d', blur: 6 }
-    },
-    detectRetina: true
-  },
-  constelacao: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 32, density: { enable: true, area: 900 } },
-      color: { value: '#ffffff' },
-      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 0.5, sync: false } },
-      size: { value: { min: 1, max: 2.2 } },
-      move: { enable: true, speed: 0.15, random: true, outModes: { default: 'bounce' } },
-      links: { enable: true, distance: 110, color: '#ffffff', opacity: 0.15, width: 1 }
-    },
-    detectRetina: true
-  },
-  vagalumes: {
-    fullScreen: { enable: false },
-    particles: {
-      number: { value: 20, density: { enable: true, area: 900 } },
-      color: { value: ['#d4ff6a', '#f0ff9e', '#c9f24a'] },
-      shape: { type: 'circle' },
-      opacity: { value: { min: 0.15, max: 0.95 }, animation: { enable: true, speed: 1.4, sync: false } },
-      size: { value: { min: 1.4, max: 3 } },
-      move: { enable: true, speed: 0.7, random: true, straight: false, outModes: { default: 'bounce' } },
-      shadow: { enable: true, color: '#d4ff6a', blur: 8 }
-    },
-    detectRetina: true
-  }
-};
 let _bannerFxContainers = {};
 function mountBannerFx(fxSlotId, animId) {
   const slot = document.getElementById(fxSlotId);
@@ -3275,19 +3064,6 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ══════════════════════════════════════════
 //   TOUR DE BOAS-VINDAS (primeira vez no app)
 // ══════════════════════════════════════════
-const ONBOARDING_STEPS = [
-  { icon:'👋', title:'Bem-vindo(a) à Crydan!', text:'Seu personagem já foi criado. Vamos dar uma volta rápida pra você conhecer tudo que tem por aqui.' },
-  { icon:'🏠', title:'Início', text:'Sua tela principal. Mostra seu nível, vida, energia, fome e os avisos mais recentes.' },
-  { icon:'⚔️', title:'RPG Medieval', text:'Vá em Batalha pra lutar contra monstros, Missões pra ganhar recompensas, e Guildas pra jogar em grupo. Tudo dá XP e Cry (a moeda do jogo).' },
-  { icon:'🏦', title:'Economia', text:'No Banco você guarda seu Cry com segurança. No Mercado, Casas e Empresas você gasta e investe o que ganhou.' },
-  { icon:'💬', title:'Conversas e Publicações', text:'Crie comunidades, converse com pessoas, mande fotos e vídeos, e publique o que quiser no feed.' },
-  { icon:'🤖', title:'IA Companheira', text:'Crie a sua própria IA: escolha nome, idade, gênero e a personalidade dela. Cada pessoa pode ter uma IA diferente!' },
-  { icon:'🎮', title:'Central de Jogos', text:'Jogo da Velha, Xadrez, Termo, Quiz e muito mais — sozinho, com um amigo ou contra o computador.' },
-  { icon:'🖼️', title:'Galeria', text:'Deixe seu avatar único com molduras animadas — de anéis coloridos até um dragão de verdade voando ao redor da sua foto.' },
-  { icon:'🎵', title:'Músicas', text:'Busque e toque músicas direto dentro do app, sem sair pra nenhum site.' },
-  { icon:'🔧', title:'Config', text:'Mude o tema, a cor de destaque, a fonte, o fundo inteiro do app e muito mais — do seu jeito.' },
-  { icon:'✨', title:'Pronto!', text:'É isso! Agora é só explorar. Boa jornada, aventureiro(a)!' },
-];
 let tourStep = 0;
 
 function startOnboardingTour() {
@@ -4383,7 +4159,6 @@ function fightBoss(bossId) {
 
 // ── MAP ────────────────────────────────────
 // ── MAPA 2D ANDÁVEL (estilo Pokémon) ────────
-const MAP_COLS = 5, MAP_ROWS = 5;
 let _mapKeyListenerAttached = false;
 let _mapLastDir = 'down';
 
