@@ -2,7 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, safeMediaUrl } from './utils/escapeHtml.js';
 import { timeAgo, formatCry, formatLastSeen, _stripAt } from './utils/format.js';
-import { sleep, rarityColor, createDiceElement, buildLinkHref } from './utils/helpers.js';
+import { sleep, rarityColor, createDiceElement, buildLinkHref, hslToHex, uid, fmtTime, initialsOf, normalizeUsernameInput, getGreeting } from './utils/helpers.js';
+import { tttWinner, chessIsWhite, chessIsBlack, botDifficultyBar } from './games/helpers.js';
 import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
 import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE, GUILDS_DEFAULT } from './guild/constants.js';
 import {
@@ -1637,14 +1638,6 @@ function setTheme(theme) {
 }
 
 // ── PERSONALIZAÇÃO: cor de destaque, fundo do app, fonte e foto de perfil ──
-function hslToHex(h, s, l) {
-  s /= 100; l /= 100;
-  const k = n => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  const toHex = x => Math.round(255 * x).toString(16).padStart(2, '0');
-  return '#' + toHex(f(0)) + toHex(f(8)) + toHex(f(4));
-}
 function hexToHsl(hex) {
   let r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -2243,13 +2236,6 @@ function refreshAll() {
   renderActivityRail();
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 6) return 'Boa madrugada';
-  if (h < 12) return 'Bom dia';
-  if (h < 18) return 'Boa tarde';
-  return 'Boa noite';
-}
 
 function checkDailyLoginBonus() {
   const today = new Date().toDateString();
@@ -7213,9 +7199,6 @@ function saveProfileLinks() {
 // ── @usuário único (regras iguais Instagram) ────────────────────────
 // 1–30 caracteres, letras minúsculas, números, ponto e underline;
 // não pode começar/terminar com ponto nem ter ponto duplo.
-function normalizeUsernameInput(v) {
-  return (v || '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
-}
 let _usernameCheckTimer = null;
 async function checkUsernameAvailability() {
   const input = document.getElementById('cfg-username');
@@ -7784,16 +7767,6 @@ function chatAvatarHtml(userId, fallbackName) {
 
 let myGroupsCache = []; // grupos reais (Supabase) dos quais você é membro
 
-function uid(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-function initialsOf(name) {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-}
-function fmtTime(ts) {
-  const d = new Date(ts);
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
 
 // ── Comunidades — agora reais e compartilhadas entre contas ──────────
 // Antes, G.communities só existia no SEU save — ninguém mais via nem
@@ -9552,10 +9525,6 @@ let tttBoard, tttTurn, tttMode, tttOver, tttDifficulty;
 // ── Dificuldade do bot (compartilhada entre os jogos) ───────────────
 // 4 níveis: fácil (bastante aleatório), médio, difícil (quase sempre
 // joga a melhor jogada) e impossível (sempre joga perfeitamente).
-function botDifficultyBar(currentVar, setterFnName) {
-  return `<div class="game-mode-bar" style="flex-wrap:wrap">${Object.entries(BOT_DIFFICULTIES).map(([id, d]) =>
-    `<button class="btn-sm ${currentVar===id?'btn-primary':''}" onclick="${setterFnName}('${id}')">${d.label}</button>`).join('')}</div>`;
-}
 
 function initGame_velha() {
   tttBoard = Array(9).fill(null); tttTurn = 'X'; tttMode = tttMode || 'ai'; tttOver = false;
@@ -9577,12 +9546,6 @@ function renderGame_velha() {
 }
 function tttSetMode(m) { tttMode = m; initGame_velha(); }
 function tttSetDifficulty(d) { tttDifficulty = d; renderGame_velha(); }
-function tttWinner(b) {
-  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for (const [a,b2,c2] of lines) if (b[a] && b[a] === b[b2] && b[a] === b[c2]) return b[a];
-  if (b.every(x => x)) return 'empate';
-  return null;
-}
 function tttPlay(i) {
   if (tttOver || tttBoard[i]) return;
   tttBoard[i] = tttTurn;
@@ -10110,8 +10073,6 @@ function initGame_xadrez() {
   chessTurn = 'w'; chessSelected = null; chessOver = false;
   renderGame_xadrez();
 }
-function chessIsWhite(p) { return '♙♖♘♗♕♔'.includes(p); }
-function chessIsBlack(p) { return '♟♜♞♝♛♚'.includes(p); }
 function chessValidMove(piece, r1, c1, r2, c2) {
   const dr = r2-r1, dc = c2-c1;
   const target = chessBoard[r2][c2];
