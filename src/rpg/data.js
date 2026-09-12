@@ -433,3 +433,213 @@ export const MONSTERS = {
   dragao:  { name:'Dragão',      icon:'🐉', hp:200, atk:25, def:15, xp:120, cry:80 },
   lich:    { name:'Lich',        icon:'💀', hp:300, atk:35, def:20, xp:200, cry:150 },
 };
+
+export const AVATAR_PARTICLE_PRESETS = {
+  estelar: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 16, density: { enable: true, area: 300 } },
+      color: { value: ['#ffffff', '#8fd6ff'] },
+      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1, sync: false } },
+      size: { value: { min: 0.8, max: 1.8 } },
+      move: { enable: true, speed: 0.4, random: true, outModes: { default: 'bounce' } }
+    },
+    detectRetina: true
+  },
+  vulcanica: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 14, density: { enable: true, area: 300 } },
+      color: { value: ['#ff5b3d', '#ffb347'] },
+      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1.2, sync: false } },
+      size: { value: { min: 1, max: 2.2 } },
+      move: { enable: true, speed: 0.6, direction: 'top', outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#ff6a3d', blur: 5 }
+    },
+    detectRetina: true
+  },
+  espectral: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 14, density: { enable: true, area: 300 } },
+      color: { value: ['#9b59ff', '#4dffb8'] },
+      opacity: { value: { min: 0.2, max: 0.75 }, animation: { enable: true, speed: 0.8, sync: false } },
+      size: { value: { min: 1, max: 2.4 } },
+      move: { enable: true, speed: 0.3, random: true, outModes: { default: 'bounce' } }
+    },
+    detectRetina: true
+  },
+  gelo: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 15, density: { enable: true, area: 300 } },
+      color: { value: ['#bfe9ff', '#ffffff'] },
+      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 0.9, sync: false } },
+      size: { value: { min: 1, max: 2.4 } },
+      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#bfe9ff', blur: 4 }
+    },
+    detectRetina: true
+  },
+  dourada: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 16, density: { enable: true, area: 300 } },
+      color: { value: ['#f0c040', '#d4a017', '#ffe9a8'] },
+      opacity: { value: { min: 0.3, max: 1 }, animation: { enable: true, speed: 1.1, sync: false } },
+      size: { value: { min: 0.9, max: 2 } },
+      move: { enable: true, speed: 0.45, random: true, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#f0c040', blur: 5 }
+    },
+    detectRetina: true
+  },
+  sombria: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 14, density: { enable: true, area: 300 } },
+      color: { value: ['#5c0f1a', '#2a0a1a', '#8c1621'] },
+      opacity: { value: { min: 0.25, max: 0.8 }, animation: { enable: true, speed: 0.7, sync: false } },
+      size: { value: { min: 1.2, max: 2.6 } },
+      move: { enable: true, speed: 0.3, random: true, outModes: { default: 'bounce' } }
+    },
+    detectRetina: true
+  },
+  eletrica: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 12, density: { enable: true, area: 300 } },
+      color: { value: ['#7fe8ff', '#fdf565', '#ffffff'] },
+      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 2.4, sync: false } },
+      size: { value: { min: 0.8, max: 2 } },
+      move: { enable: true, speed: 1.1, random: true, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#7fe8ff', blur: 6 }
+    },
+    detectRetina: true
+  },
+  prisma: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 16, density: { enable: true, area: 300 } },
+      color: { value: ['#ff6bcb', '#7fd8f0', '#f0e256', '#8fff9e', '#c58bff'] },
+      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 1.3, sync: false } },
+      size: { value: { min: 0.9, max: 2.2 } },
+      move: { enable: true, speed: 0.5, random: true, outModes: { default: 'bounce' } }
+    },
+    detectRetina: true
+  },
+  arcana: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 13, density: { enable: true, area: 300 } },
+      color: { value: ['#a76bff', '#6531c9', '#d9b8ff'] },
+      opacity: { value: { min: 0.3, max: 0.95 }, animation: { enable: true, speed: 0.9, sync: false } },
+      size: { value: { min: 1, max: 2.4 } },
+      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#a76bff', blur: 5 }
+    },
+    detectRetina: true
+  },
+  brasa: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 15, density: { enable: true, area: 300 } },
+      color: { value: ['#ff8a1a', '#fff45c', '#e8432b'] },
+      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 1.1, sync: false } },
+      size: { value: { min: 1, max: 2.4 } },
+      move: { enable: true, speed: 0.7, direction: 'top', outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#ff8a1a', blur: 6 }
+    },
+    detectRetina: true
+  },
+  celeste: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 14, density: { enable: true, area: 300 } },
+      color: { value: ['#ffffff', '#fff3d0', '#ffe9a8'] },
+      opacity: { value: { min: 0.35, max: 1 }, animation: { enable: true, speed: 0.7, sync: false } },
+      size: { value: { min: 1, max: 2.2 } },
+      move: { enable: true, speed: 0.3, direction: 'top', random: true, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#fff3d0', blur: 5 }
+    },
+    detectRetina: true
+  },
+  venenosa: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 13, density: { enable: true, area: 300 } },
+      color: { value: ['#7cff5c', '#3a8c1a', '#c8ff9e'] },
+      opacity: { value: { min: 0.25, max: 0.85 }, animation: { enable: true, speed: 0.8, sync: false } },
+      size: { value: { min: 1.2, max: 2.6 } },
+      move: { enable: true, speed: 0.35, random: true, outModes: { default: 'bounce' } }
+    },
+    detectRetina: true
+  }
+};
+
+export const PARTICLE_BANNER_PRESETS = {
+  particulas: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 36, density: { enable: true, area: 900 } },
+      color: { value: ['#f0c040', '#ffffff', '#9b59ff'] },
+      shape: { type: 'circle' },
+      opacity: { value: { min: 0.15, max: 0.7 }, animation: { enable: true, speed: 0.6, sync: false } },
+      size: { value: { min: 1, max: 2.6 } },
+      move: { enable: true, speed: 0.5, direction: 'top', random: true, straight: false, outModes: { default: 'out' } }
+    },
+    detectRetina: true
+  },
+  neve: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 55, density: { enable: true, area: 800 } },
+      color: { value: '#ffffff' },
+      shape: { type: 'circle' },
+      opacity: { value: { min: 0.4, max: 0.9 } },
+      size: { value: { min: 1, max: 3.5 } },
+      move: { enable: true, speed: { min: 0.6, max: 1.6 }, direction: 'bottom', straight: false, drift: 0.4, outModes: { default: 'out' } }
+    },
+    detectRetina: true
+  },
+  brasassubindo: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 24, density: { enable: true, area: 900 } },
+      color: { value: ['#ff5b3d', '#ffb347', '#ff8b3d'] },
+      shape: { type: 'circle' },
+      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 1, sync: false } },
+      size: { value: { min: 1, max: 3 } },
+      move: { enable: true, speed: { min: 0.8, max: 2 }, direction: 'top', straight: false, random: true, outModes: { default: 'out' } },
+      shadow: { enable: true, color: '#ff6a3d', blur: 6 }
+    },
+    detectRetina: true
+  },
+  constelacao: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 32, density: { enable: true, area: 900 } },
+      color: { value: '#ffffff' },
+      opacity: { value: { min: 0.3, max: 0.9 }, animation: { enable: true, speed: 0.5, sync: false } },
+      size: { value: { min: 1, max: 2.2 } },
+      move: { enable: true, speed: 0.15, random: true, outModes: { default: 'bounce' } },
+      links: { enable: true, distance: 110, color: '#ffffff', opacity: 0.15, width: 1 }
+    },
+    detectRetina: true
+  },
+  vagalumes: {
+    fullScreen: { enable: false },
+    particles: {
+      number: { value: 20, density: { enable: true, area: 900 } },
+      color: { value: ['#d4ff6a', '#f0ff9e', '#c9f24a'] },
+      shape: { type: 'circle' },
+      opacity: { value: { min: 0.15, max: 0.95 }, animation: { enable: true, speed: 1.4, sync: false } },
+      size: { value: { min: 1.4, max: 3 } },
+      move: { enable: true, speed: 0.7, random: true, straight: false, outModes: { default: 'bounce' } },
+      shadow: { enable: true, color: '#d4ff6a', blur: 8 }
+    },
+    detectRetina: true
+  }
+};
+
+export const MAP_COLS = 5;
+export const MAP_ROWS = 5;
