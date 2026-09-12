@@ -2,13 +2,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, safeMediaUrl } from './utils/escapeHtml.js';
 import { timeAgo, formatCry, formatLastSeen, _stripAt } from './utils/format.js';
+import { sleep, rarityColor, createDiceElement, buildLinkHref } from './utils/helpers.js';
+import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
 import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE, GUILDS_DEFAULT } from './guild/constants.js';
 import {
   SAVE_KEY, CLASSES, RANKS, SHOP_ITEMS, HOUSES, COMPANIES, JOBS, QUESTS, BOSSES,
   ACHIEVEMENTS, MAP_ZONES, AVATARS, ACCENT_COLORS, BG_PALETTES, FONT_OPTIONS,
   BANNER_PRESETS, AVATAR_FRAMES_SPECIAL, AVATAR_FRAMES_PREMIUM, AVATAR_FRAME_RING_CUSTOM,
   AVATAR_FRAME_CUSTOM_IMAGE, AVATAR_FRAMES, FRAME_CATEGORIES, DRAGON_FRAME_SVG,
-  BANNER_DRAGON_SVG, BANNER_ANIMS, LINK_PLATFORMS, EVENTS_DATA, ICONS,
+  BANNER_DRAGON_SVG, BANNER_ANIMS, LINK_PLATFORMS, EVENTS_DATA,
   CLASS_DESCRIPTIONS, BATTLE_COOLDOWN, MONSTERS, AVATAR_PARTICLE_PRESETS,
   PARTICLE_BANNER_PRESETS, MAP_COLS, MAP_ROWS
 } from './rpg/data.js';
@@ -149,11 +151,6 @@ window.addEventListener('error', (ev) => {
 // funcionando normalmente sem ele durante toda a auditoria de segurança.
 
 
-function svgIcon(key) {
-  const inner = ICONS[key];
-  if (!inner) return '';
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
-}
 function renderNavIcons(root) {
   (root || document).querySelectorAll('[data-icon]').forEach(el => {
     const key = el.getAttribute('data-icon');
@@ -1987,12 +1984,6 @@ function saveBannerAdjust() {
 }
 
 // ── LINKS DO PERFIL (múltiplas plataformas) ──
-function buildLinkHref(platform, value) {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(value)) return value;
-  if (platform.base) return platform.base + value.replace(/^@/, '');
-  return '';
-}
 function renderProfileLinks() {
   const el = document.getElementById('profile-link-row');
   if (!el) return;
@@ -2748,9 +2739,6 @@ function renderShop() {
   `).join('');
 }
 
-function rarityColor(r) {
-  return { common:'var(--text2)', uncommon:'var(--green)', rare:'var(--cyan)', epic:'var(--purple)', legendary:'var(--gold2)' }[r] || 'var(--text2)';
-}
 
 function buyItem(itemId) {
   const item = SHOP_ITEMS.find(i => i.id === itemId);
@@ -3041,12 +3029,6 @@ function updateBattleCooldown() {
   if (hpEl) hpEl.textContent = `${G.hp}/${G.maxHp || G.hp}`;
 }
 
-function createDiceElement(id) {
-  return `<div class="dice-3d-wrap"><div class="dice-3d" id="${id}">
-    <div class="dice-face f1">⚀</div><div class="dice-face f2">⚁</div><div class="dice-face f3">⚂</div>
-    <div class="dice-face f4">⚃</div><div class="dice-face f5">⚄</div><div class="dice-face f6">⚅</div>
-  </div></div>`;
-}
 function rollDiceVisual(elId) {
   return new Promise(resolve => {
     const el = document.getElementById(elId);
@@ -3059,7 +3041,6 @@ function rollDiceVisual(elId) {
     setTimeout(() => resolve(result), 900);
   });
 }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ══════════════════════════════════════════
 //   TOUR DE BOAS-VINDAS (primeira vez no app)
@@ -3300,11 +3281,6 @@ async function startPvP() {
   }
 }
 
-function pvpPower(p) {
-  const atts = (p.str || 10) + (p.dex || 10) + (p.int_ ?? p.int ?? 10) + (p.vit || 10) + (p.wis || 10);
-  const hpRatio = (p.max_hp || p.maxHp) ? (p.hp || 0) / (p.max_hp || p.maxHp) : 1;
-  return (p.level || 1) * 15 + atts + Math.round(hpRatio * 20);
-}
 
 // Roda só no lado de quem ACEITA o desafio — decide o vencedor com uma
 // aleatoriedade ponderada pelo "poder" de cada um (nível + atributos +
@@ -4200,7 +4176,6 @@ function renderMap() {
   }
 }
 
-function zoneAt(x, y) { return MAP_ZONES[y * MAP_COLS + x]; }
 
 function positionPlayerToken(animate) {
   const token = document.getElementById('map-player-token');
@@ -4251,15 +4226,6 @@ function walkToZone(x, y) {
   step();
 }
 
-function encounterChanceFor(danger) {
-  return [0, .10, .15, .22, .22, .30][danger] || 0;
-}
-function monsterForDanger(danger) {
-  if (danger <= 1) return 'goblin';
-  if (danger <= 3) return 'orc';
-  if (danger === 4) return 'dragao';
-  return 'lich';
-}
 function maybeTriggerEncounter(zone, x, y) {
   const chance = encounterChanceFor(zone.danger);
   if (chance <= 0 || Math.random() >= chance) return false;
