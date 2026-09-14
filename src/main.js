@@ -7,6 +7,13 @@ import { regGetAudioCtx, regTone, regSoundClick, regSoundStep, regSoundSuccess, 
 import { tttWinner, chessIsWhite, chessIsBlack, botDifficultyBar } from './games/helpers.js';
 import { initGame_conecta4, renderGame_conecta4, c4SetMode, c4SetDifficulty, c4LowestRow, c4CheckWin, c4Play, c4AiMove, c4End } from './games/connect4.js';
 import { initGame_velha, renderGame_velha, tttSetMode, tttSetDifficulty, tttPlay, tttAiMove, tttMinimax, tttEnd } from './games/tictactoe.js';
+import { initGame_termo, renderGame_termo, termoSubmit } from './games/termo.js';
+import { initGame_forca, renderGame_forca, forcaGuess } from './games/forca.js';
+import { initGame_quiz, renderGame_quiz, quizAnswer } from './games/quiz.js';
+import { initGame_memoria, renderGame_memoria, memFlip } from './games/memory.js';
+import { initGame_ppt, renderGame_ppt, pptPlay } from './games/rockpaperscissors.js';
+import { initGame_numero, renderGame_numero, numGuess } from './games/guessnumber.js';
+import { initGame_dados, renderGame_dados, diceSetCount, diceRollSolo } from './games/dice.js';
 import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
 import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE, GUILDS_DEFAULT, guildTagHtml } from './guild/constants.js';
 import { groupIconHtml, communityIconHtml, communityIconHtmlBig } from './social/helpers.js';
@@ -2983,7 +2990,7 @@ function updateBattleCooldown() {
   if (hpEl) hpEl.textContent = `${G.hp}/${G.maxHp || G.hp}`;
 }
 
-function rollDiceVisual(elId) {
+export function rollDiceVisual(elId) {
   return new Promise(resolve => {
     const el = document.getElementById(elId);
     const result = Math.floor(Math.random() * 6) + 1;
@@ -3003,7 +3010,7 @@ function closeOnboardingTour() {
   saveGame();
 }
 
-function celebrate(intensity = 'normal') {
+export function celebrate(intensity = 'normal') {
   try {
     if (typeof confetti !== 'function') return;
     if (intensity === 'big') {
@@ -9426,243 +9433,6 @@ export function gameReward(cry, xp) {
   saveGame(); updateHeader();
 }
 
-/* ---------- 2. TERMO ---------- */
-let termoWord, termoGuesses, termoRow, termoOver;
-function initGame_termo() {
-  termoWord = TERMO_WORDS[Math.floor(Math.random()*TERMO_WORDS.length)];
-  termoGuesses = []; termoRow = ''; termoOver = false;
-  renderGame_termo();
-}
-function renderGame_termo() {
-  const c = document.getElementById('game-container');
-  let rows = '';
-  for (let i = 0; i < 6; i++) {
-    const guess = termoGuesses[i];
-    if (guess) {
-      rows += `<div class="termo-row">${guess.letters.map(l => `<div class="termo-cell ${l.state}">${l.ch}</div>`).join('')}</div>`;
-    } else if (i === termoGuesses.length) {
-      const cur = (termoRow + '     ').slice(0,5).split('');
-      rows += `<div class="termo-row">${cur.map(ch => `<div class="termo-cell">${ch.trim()}</div>`).join('')}</div>`;
-    } else {
-      rows += `<div class="termo-row">${'     '.split('').map(()=>`<div class="termo-cell"></div>`).join('')}</div>`;
-    }
-  }
-  c.innerHTML = `
-    <div class="card-title">🟩 Termo</div>
-    <div style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:10px">Adivinhe a palavra de 5 letras em até 6 tentativas.</div>
-    ${rows}
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-      <input class="form-input" id="termo-input" maxlength="5" style="width:140px;text-transform:uppercase;text-align:center" ${termoOver?'disabled':''} onkeydown="if(event.key==='Enter'){termoSubmit();}">
-      <button class="btn btn-primary" onclick="termoSubmit()" ${termoOver?'disabled':''}>Tentar</button>
-      <button class="btn-sm" onclick="initGame_termo()">🔄 Nova Palavra</button>
-    </div>`;
-}
-function termoSubmit() {
-  const input = document.getElementById('termo-input');
-  const guess = input.value.trim().toUpperCase();
-  if (guess.length !== 5) return notify('error', 'A palavra precisa ter 5 letras.');
-  const target = termoWord.split('');
-  const guessArr = guess.split('');
-  const states = Array(5).fill('absent');
-  const used = Array(5).fill(false);
-  for (let i = 0; i < 5; i++) if (guessArr[i] === target[i]) { states[i] = 'correct'; used[i] = true; }
-  for (let i = 0; i < 5; i++) {
-    if (states[i] === 'correct') continue;
-    const idx = target.findIndex((ch,j) => ch === guessArr[i] && !used[j]);
-    if (idx >= 0) { states[i] = 'present'; used[idx] = true; }
-  }
-  termoGuesses.push({ letters: guessArr.map((ch,i) => ({ ch, state: states[i] })) });
-  input.value = '';
-  if (guess === termoWord) {
-    termoOver = true; renderGame_termo();
-    gameReward(20, 6); notify('success', `🎉 Você acertou "${termoWord}"! +20 Cry`);
-    return;
-  }
-  if (termoGuesses.length >= 6) {
-    termoOver = true; renderGame_termo();
-    notify('error', `Fim de tentativas! A palavra era "${termoWord}".`);
-    return;
-  }
-  renderGame_termo();
-}
-
-/* ---------- 3. FORCA ---------- */
-let forcaWord, forcaGuessed, forcaWrong;
-function initGame_forca() {
-  forcaWord = FORCA_WORDS[Math.floor(Math.random()*FORCA_WORDS.length)];
-  forcaGuessed = []; forcaWrong = 0;
-  renderGame_forca();
-}
-function renderGame_forca() {
-  const c = document.getElementById('game-container');
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const won = forcaWord.split('').every(ch => forcaGuessed.includes(ch));
-  const lost = forcaWrong >= 6;
-  c.innerHTML = `
-    <div class="card-title">🪢 Forca</div>
-    <div class="hangman-figure">${HANGMAN_STAGES[forcaWrong]}</div>
-    <div class="word-blanks">${forcaWord.split('').map(ch => forcaGuessed.includes(ch) || lost ? `<span style="${!forcaGuessed.includes(ch)&&lost?'color:var(--red)':''}">${ch}</span>` : '_').join('')}</div>
-    <div style="text-align:center;font-size:12px;color:var(--text3);margin-bottom:10px">Erros: ${forcaWrong}/6</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:400px;margin:0 auto">
-      ${letters.map(l => `<button class="letter-btn" ${forcaGuessed.includes(l)||won||lost?'disabled':''} onclick="forcaGuess('${l}')">${l}</button>`).join('')}
-    </div>
-    <div style="text-align:center;margin-top:12px">
-      ${won ? '<span class="badge badge-green">🎉 Você venceu!</span>' : ''}
-      ${lost ? `<span class="badge badge-red">💀 Fim de jogo! Era "${forcaWord}"</span>` : ''}
-      <button class="btn-sm" style="margin-left:8px" onclick="initGame_forca()">🔄 Nova Palavra</button>
-    </div>`;
-  if (won && !window._forcaRewarded) { window._forcaRewarded = true; gameReward(18, 5); notify('success', '🎉 +18 Cry'); }
-  if (!won) window._forcaRewarded = false;
-}
-function forcaGuess(l) {
-  if (forcaGuessed.includes(l)) return;
-  forcaGuessed.push(l);
-  if (!forcaWord.includes(l)) forcaWrong++;
-  renderGame_forca();
-}
-
-/* ---------- 4. QUIZ ---------- */
-let quizIndex, quizScore, quizOrder;
-function initGame_quiz() {
-  quizOrder = QUIZ_QUESTIONS.map((_,i) => i).sort(() => Math.random()-0.5).slice(0,10);
-  quizIndex = 0; quizScore = 0;
-  renderGame_quiz();
-}
-function renderGame_quiz() {
-  const c = document.getElementById('game-container');
-  if (quizIndex >= quizOrder.length) {
-    const cry = quizScore * 5;
-    gameReward(cry, quizScore);
-    if (quizScore === quizOrder.length) celebrate('big');
-    c.innerHTML = `
-      <div class="card-title">❓ Quiz Crydan — Resultado</div>
-      <div style="text-align:center;padding:30px">
-        <div style="font-size:40px;margin-bottom:10px">🏆</div>
-        <div style="font-size:18px;color:var(--gold2);margin-bottom:8px">Você acertou ${quizScore} de ${quizOrder.length}!</div>
-        <div style="font-size:13px;color:var(--text3);margin-bottom:16px">+${cry} Cry</div>
-        <button class="btn btn-primary" onclick="initGame_quiz()">🔄 Jogar Novamente</button>
-      </div>`;
-    return;
-  }
-  const q = QUIZ_QUESTIONS[quizOrder[quizIndex]];
-  c.innerHTML = `
-    <div class="card-title">❓ Quiz Crydan (${quizIndex+1}/${quizOrder.length}) — Pontos: ${quizScore}</div>
-    <div style="font-size:15px;color:var(--text);margin-bottom:14px;text-align:center">${q.q}</div>
-    <div style="display:flex;flex-direction:column;gap:8px;max-width:400px;margin:0 auto">
-      ${q.options.map((op,i) => `<button class="btn" onclick="quizAnswer(${i})">${op}</button>`).join('')}
-    </div>`;
-}
-function quizAnswer(i) {
-  const q = QUIZ_QUESTIONS[quizOrder[quizIndex]];
-  if (i === q.a) { quizScore++; notify('success', '✅ Certa!', 1200); } else { notify('error', `❌ Errada — era "${q.options[q.a]}"`, 1800); }
-  quizIndex++;
-  renderGame_quiz();
-}
-
-
-/* ---------- 6. JOGO DA MEMÓRIA ---------- */
-let memCards, memFlipped, memMatched, memMoves, memBusy;
-function initGame_memoria() {
-  const pairs = [...MEMORY_EMOJIS, ...MEMORY_EMOJIS];
-  memCards = pairs.sort(() => Math.random()-0.5);
-  memFlipped = []; memMatched = []; memMoves = 0; memBusy = false;
-  renderGame_memoria();
-}
-function renderGame_memoria() {
-  const c = document.getElementById('game-container');
-  c.innerHTML = `
-    <div class="card-title">🃏 Jogo da Memória — Movimentos: ${memMoves}</div>
-    <div class="memory-board">
-      ${memCards.map((e,i) => `<div class="memory-card ${memFlipped.includes(i)||memMatched.includes(i)?'flipped':''}" onclick="memFlip(${i})">${memFlipped.includes(i)||memMatched.includes(i)?e:'❔'}</div>`).join('')}
-    </div>
-    <div style="text-align:center;margin-top:10px">
-      ${memMatched.length === memCards.length ? '<span class="badge badge-green">🎉 Completou!</span>' : ''}
-      <button class="btn-sm" style="margin-left:8px" onclick="initGame_memoria()">🔄 Reiniciar</button>
-    </div>`;
-}
-function memFlip(i) {
-  if (memBusy || memFlipped.includes(i) || memMatched.includes(i) || memFlipped.length >= 2) return;
-  memFlipped.push(i);
-  renderGame_memoria();
-  if (memFlipped.length === 2) {
-    memMoves++;
-    memBusy = true;
-    const [a,b] = memFlipped;
-    if (memCards[a] === memCards[b]) {
-      memMatched.push(a,b); memFlipped = []; memBusy = false;
-      renderGame_memoria();
-      if (memMatched.length === memCards.length) { gameReward(20, 6); notify('success', `🎉 Completou em ${memMoves} movimentos! +20 Cry`); }
-    } else {
-      setTimeout(() => { memFlipped = []; memBusy = false; renderGame_memoria(); }, 800);
-    }
-  }
-}
-
-/* ---------- 7. PEDRA, PAPEL, TESOURA ---------- */
-let pptScore;
-function initGame_ppt() {
-  pptScore = pptScore || { win:0, lose:0, draw:0 };
-  renderGame_ppt('', '', '');
-}
-function renderGame_ppt(playerChoice, aiChoice, result) {
-  const c = document.getElementById('game-container');
-  const icons = { pedra:'🪨', papel:'📄', tesoura:'✂️' };
-  c.innerHTML = `
-    <div class="card-title">✂️ Pedra, Papel e Tesoura</div>
-    <div style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:14px">Vitórias: ${pptScore.win} · Derrotas: ${pptScore.lose} · Empates: ${pptScore.draw}</div>
-    ${playerChoice ? `<div style="text-align:center;font-size:40px;margin-bottom:10px">${icons[playerChoice]} vs ${icons[aiChoice]}</div><div style="text-align:center;font-size:16px;color:var(--gold2);margin-bottom:16px">${result}</div>` : ''}
-    <div style="display:flex;gap:12px;justify-content:center">
-      <button class="btn" style="font-size:24px;padding:16px" onclick="pptPlay('pedra')">🪨</button>
-      <button class="btn" style="font-size:24px;padding:16px" onclick="pptPlay('papel')">📄</button>
-      <button class="btn" style="font-size:24px;padding:16px" onclick="pptPlay('tesoura')">✂️</button>
-    </div>`;
-}
-function pptPlay(choice) {
-  const options = ['pedra','papel','tesoura'];
-  const ai = options[Math.floor(Math.random()*3)];
-  let result;
-  if (choice === ai) { result = 'Empate!'; pptScore.draw++; }
-  else if ((choice==='pedra'&&ai==='tesoura')||(choice==='papel'&&ai==='pedra')||(choice==='tesoura'&&ai==='papel')) { result = 'Você venceu!'; pptScore.win++; gameReward(8, 2); }
-  else { result = 'A IA venceu!'; pptScore.lose++; }
-  renderGame_ppt(choice, ai, result);
-}
-
-/* ---------- 8. ADIVINHE O NÚMERO ---------- */
-let numTarget, numTries, numMin, numMax;
-function initGame_numero() {
-  numTarget = Math.floor(Math.random()*100)+1; numTries = 0; numMin = 1; numMax = 100;
-  renderGame_numero('Pense em um número entre 1 e 100... já pensei no meu! Tente adivinhar.');
-}
-function renderGame_numero(msg) {
-  const c = document.getElementById('game-container');
-  c.innerHTML = `
-    <div class="card-title">🔢 Adivinhe o Número</div>
-    <div style="text-align:center;font-size:13px;color:var(--text2);margin-bottom:14px">${msg}</div>
-    <div style="text-align:center;font-size:12px;color:var(--text3);margin-bottom:10px">Tentativas: ${numTries} · Intervalo atual: ${numMin} a ${numMax}</div>
-    <div style="display:flex;gap:8px;justify-content:center">
-      <input class="form-input" id="num-input" type="number" min="1" max="100" style="width:120px;text-align:center" onkeydown="if(event.key==='Enter'){numGuess();}">
-      <button class="btn btn-primary" onclick="numGuess()">Tentar</button>
-      <button class="btn-sm" onclick="initGame_numero()">🔄 Novo Jogo</button>
-    </div>`;
-}
-function numGuess() {
-  const input = document.getElementById('num-input');
-  const g = parseInt(input.value);
-  if (isNaN(g)) return;
-  numTries++;
-  if (g === numTarget) {
-    const cry = Math.max(5, 30 - numTries*2);
-    gameReward(cry, 4);
-    renderGame_numero(`🎉 Acertou em ${numTries} tentativas! +${cry} Cry`);
-  } else if (g < numTarget) {
-    numMin = Math.max(numMin, g+1);
-    renderGame_numero(`${g} é menor que o número secreto. Tente mais alto!`);
-  } else {
-    numMax = Math.min(numMax, g-1);
-    renderGame_numero(`${g} é maior que o número secreto. Tente mais baixo!`);
-  }
-}
-
 /* ---------- 9. 2048 ---------- */
 let g2048Board, g2048Over, g2048Score, g2048KeyHandler;
 function initGame_2048() {
@@ -9926,32 +9696,6 @@ function checkersClick(r, c) {
   } else {
     if (piece && piece.p === checkersTurn) { checkersSelected = [r,c]; renderGame_damas(); }
   }
-}
-
-/* ---------- 13. ROLAR DADOS ---------- */
-let diceCount = 2;
-function initGame_dados() { renderGame_dados(); }
-function renderGame_dados() {
-  const c = document.getElementById('game-container');
-  let diceHtml = '';
-  for (let i = 0; i < diceCount; i++) diceHtml += createDiceElement('dice-solo-' + i);
-  c.innerHTML = `
-    <div class="card-title">🎲 Rolar Dados</div>
-    <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:14px">Escolha quantos dados de 6 lados rolar e clique em rolar.</div>
-    <div class="game-mode-bar" style="justify-content:center">
-      ${[1,2,3,4].map(n => `<button class="btn-sm ${diceCount===n?'btn-primary':''}" onclick="diceSetCount(${n})">${n} dado${n>1?'s':''}</button>`).join('')}
-    </div>
-    <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin:20px 0">${diceHtml}</div>
-    <div id="dice-solo-result" style="text-align:center;font-size:20px;color:var(--gold2);font-family:'Cinzel',serif;min-height:28px"></div>
-    <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="diceRollSolo()">🎲 Rolar!</button></div>`;
-}
-function diceSetCount(n) { diceCount = n; renderGame_dados(); }
-async function diceRollSolo() {
-  const promises = [];
-  for (let i = 0; i < diceCount; i++) promises.push(rollDiceVisual('dice-solo-' + i));
-  const results = await Promise.all(promises);
-  const sum = results.reduce((a,b) => a+b, 0);
-  document.getElementById('dice-solo-result').textContent = `Resultado: ${results.join(' + ')} = ${sum}`;
 }
 
 // ══════════════════════════════════════════
