@@ -19,6 +19,7 @@ import {
 } from './rpg/data.js';
 import { USERNAME_REGEX, OAUTH_PROVIDERS } from './auth/constants.js';
 import { FB_TYPE_LABEL, RTC_CONFIG, DEVICE_VIEWS, MOBILE_NAV_CATEGORIES, MOBILE_PANEL_TO_CAT, STORY_COLORS, STORY_REACT_EMOJIS, NOTIF_ICONS, ONBOARDING_STEPS } from './ui/constants.js';
+import { startOnboardingTour, renderOnboardingTour, tourNext, tourPrev, replayTour } from './ui/onboarding.js';
 import { GAMES_LIST, BOT_DIFFICULTIES, TERMO_WORDS, FORCA_WORDS, HANGMAN_STAGES, QUIZ_QUESTIONS, MEMORY_EMOJIS, SIMON_COLORS } from './games/data.js';
 
 // Ponto de entrada único do Crydan -- gerado a partir da fusão dos 3 blocos
@@ -2993,49 +2994,12 @@ function rollDiceVisual(elId) {
   });
 }
 
-// ══════════════════════════════════════════
-//   TOUR DE BOAS-VINDAS (primeira vez no app)
-// ══════════════════════════════════════════
-let tourStep = 0;
-
-function startOnboardingTour() {
-  tourStep = 0;
-  renderOnboardingTour();
-}
-
-function renderOnboardingTour() {
-  let overlay = document.getElementById('onboarding-tour-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'onboarding-tour-overlay';
-    overlay.className = 'call-overlay';
-    document.body.appendChild(overlay);
-  }
-  const step = ONBOARDING_STEPS[tourStep];
-  const isLast = tourStep === ONBOARDING_STEPS.length - 1;
-  overlay.innerHTML = `
-    <div class="call-box" style="max-width:380px;background:var(--bg2);border:1px solid var(--gold3);border-radius:14px;padding:28px">
-      <div style="font-size:48px;margin-bottom:14px">${step.icon}</div>
-      <div style="font-family:'Cinzel',serif;font-size:19px;color:var(--gold2);margin-bottom:10px">${step.title}</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px">${step.text}</div>
-      <div style="display:flex;justify-content:center;gap:5px;margin-bottom:18px">
-        ${ONBOARDING_STEPS.map((_,i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i===tourStep?'var(--gold)':'var(--border2)'}"></span>`).join('')}
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        ${tourStep > 0 ? '<button class="btn btn-sm" onclick="tourPrev()">← Voltar</button>' : `<button class="btn btn-sm" onclick="closeOnboardingTour()">Pular</button>`}
-        <button class="btn btn-primary" onclick="${isLast ? 'closeOnboardingTour()' : 'tourNext()'}">${isLast ? '🎉 Começar!' : 'Próximo →'}</button>
-      </div>
-    </div>`;
-}
-function tourNext() { tourStep = Math.min(ONBOARDING_STEPS.length - 1, tourStep + 1); renderOnboardingTour(); }
-function tourPrev() { tourStep = Math.max(0, tourStep - 1); renderOnboardingTour(); }
 function closeOnboardingTour() {
   const overlay = document.getElementById('onboarding-tour-overlay');
   if (overlay) overlay.remove();
   G.tourSeen = true;
   saveGame();
 }
-function replayTour() { startOnboardingTour(); }
 
 function celebrate(intensity = 'normal') {
   try {
