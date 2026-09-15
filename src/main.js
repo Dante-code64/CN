@@ -19,6 +19,11 @@ import { initGame_simon, renderGame_simon, simonStart, simonPlaySequence, simonP
 import { initGame_xadrez, renderGame_xadrez, chessValidMove, chessClick } from './games/chess.js';
 import { initGame_damas, renderGame_damas, checkersValidMove, checkersClick } from './games/checkers.js';
 import { renderBannerAnimShop, previewBannerAnim, equipBannerAnim, confirmEquipPreviewedBanner, closeBannerPreview } from './ui/bannershop.js';
+import { equipAvatar, isFrameOwned, renderFrameShopTabs, setFrameShopCategory, renderAvatarFrameShop, buyAvatarFrame, equipOwnedFrame, previewAvatarFrame, confirmEquipPreviewedFrame, closeFramePreview } from './ui/frameshop.js';
+import { getCurrentBannerCss, openBannerVideoModal, saveBannerVideoUrl, handleBannerVideoFileSelect, removeBannerVideo, openBannerAdjustModal, updateBannerAdjustPreview, saveBannerAdjust } from './ui/bannersettings.js';
+import { renderProfileLinks, applyCustomBgImage, removeCustomBgImage, handleBgImageFileSelect, saveProfileLinks } from './ui/profilecustomization.js';
+import { initThemeLottie, syncOtherThemeWidgets, persistThemeSilently, applyTheme, toggleTheme, toggleReduceMotion, toggleCompactMode, applyInterfacePrefs, setTheme, hexToHsl, applyAccentColor, applyBackgroundPalette, applyFont } from './ui/theme.js';
+import { renderInventory, renderInvGrid, useItem, addToInventory, removeFromInventory } from './rpg/inventory.js';
 import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
 import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE, GUILDS_DEFAULT, guildTagHtml } from './guild/constants.js';
 import { groupIconHtml, communityIconHtml, communityIconHtmlBig } from './social/helpers.js';
@@ -1450,7 +1455,7 @@ function touchLastSeen() {
   supabase.rpc('touch_last_seen').then(() => {}).catch(() => {});
 }
 
-async function saveGame() {
+export async function saveGame() {
   try {
     // Rede de segurança: carteira, banco e total ganho SEMPRE precisam ser
     // números inteiros — várias funções do servidor (como o cofre da
@@ -1537,155 +1542,6 @@ async function syncProfile() {
   }
 }
 
-// ── THEME ──────────────────────────────────
-const _themeLottieEls = {};
-
-function initThemeLottie(elId) {
-  const el = document.getElementById(elId);
-  if (!el || _themeLottieEls[elId]) return;
-  _themeLottieEls[elId] = el;
-  const setup = () => {
-    if (!el.dotLottie) { setTimeout(setup, 150); return; }
-    el.dotLottie.addEventListener('load', () => {
-      el.dotLottie.stateMachineLoad('StateMachine1');
-      el.dotLottie.stateMachineStart();
-      // Sincroniza a animação com o tema atual salvo, sem disparar aviso nem regravar o save
-      if ((G.theme || 'dark') === 'dark') el.dotLottie.stateMachineFireEvent('transition');
-    });
-    el.dotLottie.addEventListener('stateMachineStateEntered', (ev) => {
-      const state = ev.state || (ev.detail && ev.detail.state);
-      if (state === 'Night Idle') syncOtherThemeWidgets(elId, 'dark');
-      else if (state === 'Day Idle') syncOtherThemeWidgets(elId, 'light');
-    });
-  };
-  setup();
-}
-function syncOtherThemeWidgets(sourceId, theme) {
-  applyTheme(theme);
-  persistThemeSilently(theme);
-  Object.entries(_themeLottieEls).forEach(([id, el]) => {
-    if (id === sourceId || !el.dotLottie) return;
-    const wantsNight = theme === 'dark';
-    // Evita reprocessar: só dispara transição se o widget ainda não está no estado certo
-    try { el.dotLottie.stateMachineFireEvent('transition'); } catch (e) {}
-  });
-}
-function persistThemeSilently(theme) {
-  if (G && G.name && G.theme !== theme) { G.theme = theme; saveGame(); }
-}
-
-function applyTheme(theme) {
-  document.body.classList.toggle('theme-light', theme === 'light');
-  const label = document.getElementById('theme-label');
-  if (label) label.textContent = theme === 'light' ? 'Claro' : 'Escuro';
-  const cfgLabel = document.getElementById('cfg-theme-current-label');
-  if (cfgLabel) cfgLabel.textContent = theme === 'light' ? 'Claro' : 'Escuro';
-  // persist theme to user save (G) instead of localStorage
-  if (G && G.name) { G.theme = theme; saveGame(); }
-  if (G && G.bgPalette && G.bgPalette !== 'default') applyBackgroundPalette(G.bgPalette, false);
-}
-
-function toggleTheme() {
-  const next = document.body.classList.contains('theme-light') ? 'dark' : 'light';
-  setTheme(next);
-}
-
-// ── Reduzir animações (acessibilidade real: desliga transições/animações
-// CSS pra quem sente desconforto com movimento, ou só quer uma interface
-// mais parada) e Modo compacto (reduz espaçamento pra caber mais na tela).
-function toggleReduceMotion(on) {
-  document.body.classList.toggle('reduce-motion', !!on);
-  if (G && G.name) { G.reduceMotion = !!on; saveGame(); }
-  notify('info', on ? '🧘 Animações reduzidas' : '✨ Animações normais', 1800);
-}
-
-function toggleCompactMode(on) {
-  document.body.classList.toggle('compact-mode', !!on);
-  if (G && G.name) { G.compactMode = !!on; saveGame(); }
-  notify('info', on ? '📐 Modo compacto ativado' : '📐 Modo compacto desativado', 1800);
-}
-
-function applyInterfacePrefs() {
-  if (!G) return;
-  document.body.classList.toggle('reduce-motion', !!G.reduceMotion);
-  document.body.classList.toggle('compact-mode', !!G.compactMode);
-}
-
-function setTheme(theme) {
-  applyTheme(theme);
-  if (G && G.name) { G.theme = theme; saveGame(); }
-  notify('info', theme === 'light' ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado', 2000);
-}
-
-// ── PERSONALIZAÇÃO: cor de destaque, fundo do app, fonte e foto de perfil ──
-function hexToHsl(hex) {
-  let r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
-  if (max === min) { h = s = 0; }
-  else {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      default: h = (r - g) / d + 4;
-    }
-    h *= 60;
-  }
-  return { h, s: s * 100, l: l * 100 };
-}
-
-function applyAccentColor(hex, persist = true) {
-  const { h, s } = hexToHsl(hex);
-  const gold = hex;
-  const gold2 = hslToHex(h, Math.min(s + 15, 90), 62);
-  const gold3 = hslToHex(h, Math.min(s + 5, 85), 26);
-  document.body.style.setProperty('--gold', gold);
-  document.body.style.setProperty('--gold2', gold2);
-  document.body.style.setProperty('--gold3', gold3);
-  document.body.style.setProperty('--accent', gold);
-  if (persist && G && G.name) { G.accent = hex; saveGame(); }
-}
-
-function applyBackgroundPalette(id, persist = true) {
-  const pal = BG_PALETTES.find(p => p.id === id) || BG_PALETTES[0];
-  if (pal.id === 'default') {
-    ['--bg', '--bg2', '--bg3', '--bg4', '--border', '--border2', '--text', '--text2', '--text3'].forEach(v => document.body.style.removeProperty(v));
-  } else {
-    const light = document.body.classList.contains('theme-light');
-    const { h, s } = pal;
-    if (light) {
-      document.body.style.setProperty('--bg', hslToHex(h, Math.min(s, 40), 93));
-      document.body.style.setProperty('--bg2', hslToHex(h, Math.min(s, 35), 98));
-      document.body.style.setProperty('--bg3', hslToHex(h, Math.min(s, 35), 89));
-      document.body.style.setProperty('--bg4', hslToHex(h, Math.min(s, 35), 82));
-      document.body.style.setProperty('--border', hslToHex(h, Math.min(s, 30), 76));
-      document.body.style.setProperty('--border2', hslToHex(h, Math.min(s, 30), 65));
-      document.body.style.setProperty('--text', hslToHex(h, 20, 16));
-      document.body.style.setProperty('--text2', hslToHex(h, 15, 34));
-      document.body.style.setProperty('--text3', hslToHex(h, 12, 52));
-    } else {
-      document.body.style.setProperty('--bg', hslToHex(h, s, 6));
-      document.body.style.setProperty('--bg2', hslToHex(h, s, 10));
-      document.body.style.setProperty('--bg3', hslToHex(h, s, 14));
-      document.body.style.setProperty('--bg4', hslToHex(h, s, 19));
-      document.body.style.setProperty('--border', hslToHex(h, Math.min(s + 5, 45), 24));
-      document.body.style.setProperty('--border2', hslToHex(h, Math.min(s + 8, 50), 32));
-      document.body.style.setProperty('--text', hslToHex(h, 25, 88));
-      document.body.style.setProperty('--text2', hslToHex(h, 20, 62));
-      document.body.style.setProperty('--text3', hslToHex(h, 15, 42));
-    }
-  }
-  if (persist && G && G.name) { G.bgPalette = id; saveGame(); }
-}
-
-function applyFont(fontId, persist = true) {
-  const f = FONT_OPTIONS.find(x => x.id === fontId) || FONT_OPTIONS[0];
-  document.body.style.setProperty('--font-body', f.css);
-  if (persist && G && G.name) { G.font = fontId; saveGame(); }
-}
-
 // ── MOLDURA DE AVATAR (frames animados estilo Discord) ──
 let _avatarFxContainers = {};
 function mountAvatarParticles(wrap, presetKey) {
@@ -1730,7 +1586,7 @@ function lottieEntryFor(id, catalog) {
   if (!id || !id.startsWith('lottie:')) return null;
   return (catalog || _lottieCatalogCache || []).find(l => l.id === id.slice(7)) || null;
 }
-function renderAnimHtml(entry, styleAttr) {
+export function renderAnimHtml(entry, styleAttr) {
   if (!entry) return '';
   // Vídeos MP4 (ex.: prévias do LottieFiles) vêm com fundo branco "gravado" no arquivo —
   // MP4/H.264 não suporta canal alfa. mix-blend-mode:multiply remove visualmente o branco,
@@ -1741,7 +1597,7 @@ function renderAnimHtml(entry, styleAttr) {
   return `<lottie-player src="${entry.url}" background="transparent" speed="1" style="${styleAttr}" loop autoplay></lottie-player>`;
 }
 
-function applyFrameToWrap(wrap, id, ownerData) {
+export function applyFrameToWrap(wrap, id, ownerData) {
   if (!wrap) return;
   Array.from(wrap.classList).forEach(c => { if (c.startsWith('frame-') || c.startsWith('fx-')) wrap.classList.remove(c); });
   ['--fx-c1', '--fx-c2', '--fx-emoji'].forEach(v => wrap.style.removeProperty(v));
@@ -1820,7 +1676,7 @@ function handleCustomFrameImageSelect(e) {
   e.target.value = '';
 }
 
-function applyAvatarFrame(id, persist = true) {
+export function applyAvatarFrame(id, persist = true) {
   applyFrameToWrap(document.getElementById('profile-avatar-frame'), id);
   if (persist && G && G.name) { G.avatarFrame = id; saveGame(); }
 }
@@ -1864,146 +1720,6 @@ export function applyBannerAnim(id, persist = true) {
   if (persist && G && G.name) { G.bannerAnim = id; saveGame(); }
 }
 
-// ── AJUSTE DE POSIÇÃO/ZOOM DO BANNER ──
-function getCurrentBannerCss() {
-  if (G.banner) return `url('${G.banner.replace(/'/g, "\\'")}')`;
-  const preset = BANNER_PRESETS.find(b => b.id === G.bannerPreset) || BANNER_PRESETS[0];
-  return preset.css;
-}
-function openBannerVideoModal() {
-  const isVideo = G.bannerType === 'video' && G.bannerVideo;
-  showModal('🎬 Banner em Vídeo', `
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">
-      Deixe seu banner animado com um vídeo em loop, igual ao Discord Nitro. Cole o link de um vídeo (recomendado — sem limite de tamanho) ou envie um arquivo curto do seu dispositivo.
-    </div>
-    <div class="form-group"><label class="form-label">Link do vídeo (.mp4)</label><input class="form-input" id="banner-video-url" placeholder="https://exemplo.com/meu-video.mp4" value="${(G.bannerVideo && !G.bannerVideo.startsWith('data:')) ? G.bannerVideo : ''}"></div>
-    <div class="form-group">
-      <input type="file" id="banner-video-file-input" accept="video/*" style="display:none" onchange="handleBannerVideoFileSelect(event)">
-      <button class="btn" style="width:100%" onclick="document.getElementById('banner-video-file-input').click()">📁 Carregar vídeo do dispositivo (máx. 3MB)</button>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" style="flex:1" onclick="saveBannerVideoUrl()">💾 Usar Vídeo como Banner</button>
-      ${isVideo ? `<button class="btn btn-danger" onclick="removeBannerVideo()">✕ Remover</button>` : ''}
-    </div>
-  `);
-}
-function saveBannerVideoUrl() {
-  const url = document.getElementById('banner-video-url').value.trim();
-  if (!url) return notify('error', 'Cole o link de um vídeo.');
-  G.bannerVideo = url;
-  G.bannerType = 'video';
-  saveGame();
-  refreshProfile();
-  closeModalDirect();
-  notify('success', '🎬 Banner em vídeo aplicado!');
-}
-function handleBannerVideoFileSelect(e) {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('video/')) { notify('error', 'Selecione um arquivo de vídeo válido.'); e.target.value = ''; return; }
-  if (file.size > 3 * 1024 * 1024) { notify('error', 'Vídeo muito grande (máx. 3MB) — o navegador guarda tudo localmente. Prefira colar um link de vídeo.'); e.target.value = ''; return; }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    G.bannerVideo = ev.target.result;
-    G.bannerType = 'video';
-    saveGame();
-    refreshProfile();
-    closeModalDirect();
-    notify('success', '🎬 Banner em vídeo aplicado!');
-  };
-  reader.onerror = function() { notify('error', 'Não foi possível ler o vídeo selecionado.'); };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
-function removeBannerVideo() {
-  G.bannerType = 'image';
-  G.bannerVideo = '';
-  saveGame();
-  refreshProfile();
-  closeModalDirect();
-  notify('info', 'Banner em vídeo removido — voltando pra imagem.');
-}
-function openBannerAdjustModal() {
-  showModal('🖼️ Ajustar Banner', `
-    <div style="margin-bottom:14px;border-radius:8px;overflow:hidden;position:relative;height:140px;background:var(--bg3)">
-      <div id="banner-adjust-preview-img" style="position:absolute;inset:0"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Posição Horizontal</label><input type="range" min="0" max="100" id="banner-adj-x" value="${G.bannerPosX ?? 50}" oninput="updateBannerAdjustPreview()"></div>
-    <div class="form-group"><label class="form-label">Posição Vertical</label><input type="range" min="0" max="100" id="banner-adj-y" value="${G.bannerPosY ?? 50}" oninput="updateBannerAdjustPreview()"></div>
-    <div class="form-group"><label class="form-label">Zoom</label><input type="range" min="100" max="250" id="banner-adj-zoom" value="${G.bannerZoom || 100}" oninput="updateBannerAdjustPreview()"></div>
-    <button class="btn btn-primary" style="width:100%" onclick="saveBannerAdjust()">💾 Salvar Ajuste</button>
-  `);
-  updateBannerAdjustPreview();
-}
-function updateBannerAdjustPreview() {
-  const img = document.getElementById('banner-adjust-preview-img');
-  if (!img) return;
-  const x = document.getElementById('banner-adj-x').value;
-  const y = document.getElementById('banner-adj-y').value;
-  const zoom = document.getElementById('banner-adj-zoom').value;
-  img.style.background = getCurrentBannerCss();
-  img.style.backgroundSize = zoom + '%';
-  img.style.backgroundPosition = x + '% ' + y + '%';
-  img.style.backgroundRepeat = 'no-repeat';
-}
-function saveBannerAdjust() {
-  G.bannerPosX = parseInt(document.getElementById('banner-adj-x').value);
-  G.bannerPosY = parseInt(document.getElementById('banner-adj-y').value);
-  G.bannerZoom = parseInt(document.getElementById('banner-adj-zoom').value);
-  saveGame();
-  refreshProfile();
-  closeModalDirect();
-  notify('success', '🖼️ Banner ajustado!');
-}
-
-// ── LINKS DO PERFIL (múltiplas plataformas) ──
-function renderProfileLinks() {
-  const el = document.getElementById('profile-link-row');
-  if (!el) return;
-  G.profileLinks = G.profileLinks || {};
-  const filled = LINK_PLATFORMS.filter(p => G.profileLinks[p.id]);
-  if (!filled.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
-  el.style.display = 'flex';
-  el.style.flexWrap = 'wrap';
-  el.style.gap = '8px';
-  el.innerHTML = filled.map(p => {
-    const value = G.profileLinks[p.id];
-    const href = buildLinkHref(p, value);
-    if (href) return `<a class="social-pill" href="${href}" target="_blank" rel="noopener">${p.icon} ${escapeHtml(p.name)}</a>`;
-    return `<span class="social-pill" style="cursor:default">${p.icon} ${escapeHtml(value)}</span>`;
-  }).join('');
-}
-
-// ── FUNDO PERSONALIZADO (foto da galeria) ──
-function applyCustomBgImage(dataUrl, persist = true) {
-  document.body.style.backgroundImage = `url("${dataUrl}")`;
-  document.body.classList.add('custom-bg-image');
-  if (persist && G && G.name) { G.customBgImage = dataUrl; saveGame(); }
-}
-function removeCustomBgImage(persist = true) {
-  document.body.style.backgroundImage = '';
-  document.body.classList.remove('custom-bg-image');
-  const btn = document.getElementById('cfg-bg-image-remove');
-  if (btn) btn.style.display = 'none';
-  if (persist && G && G.name) { G.customBgImage = ''; saveGame(); }
-  if (persist) notify('info', 'Imagem de fundo removida.');
-}
-function handleBgImageFileSelect(e) {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { notify('error', 'Selecione um arquivo de imagem válido.'); e.target.value = ''; return; }
-  if (file.size > 4 * 1024 * 1024) { notify('error', 'Imagem muito grande (máx. 4MB).'); e.target.value = ''; return; }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    applyCustomBgImage(ev.target.result, true);
-    const btn = document.getElementById('cfg-bg-image-remove');
-    if (btn) btn.style.display = 'inline-block';
-    notify('success', '🖼️ Fundo do app atualizado com sua foto!');
-  };
-  reader.onerror = function() { notify('error', 'Não foi possível ler a imagem selecionada.'); };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
 
 function updateAvatarPreviewEl(imgId, removeBtnId) {
   const img = document.getElementById(imgId);
@@ -2230,7 +1946,7 @@ function checkDailyLoginBonus() {
   notify('success', `🎁 Bônus diário: +${bonus} Cry por voltar hoje!`, 5000);
 }
 
-function updateHeader() {
+export function updateHeader() {
   if (!G.name) return;
   document.getElementById('user-name').textContent = G.name;
   const hdrAv = document.getElementById('hdr-avatar');
@@ -2296,7 +2012,7 @@ async function renderStoriesBar() {
   bar.innerHTML = html;
 }
 
-function refreshDashboard() {
+export function refreshDashboard() {
   if (!G.name) return;
   const greetEl = document.getElementById('dashboard-greeting');
   if (greetEl) greetEl.textContent = `${getGreeting()}, ${G.name}!`;
@@ -2362,7 +2078,7 @@ function getRank() {
 }
 
 // ── PROFILE ────────────────────────────────
-function refreshProfile() {
+export function refreshProfile() {
   loadOwnFollowCounts();
   document.getElementById('profile-name').textContent = G.name;
   const cd = CLASSES[G.class] || CLASSES.guerreiro;
@@ -2520,68 +2236,6 @@ function saveProfile() {
   notify('success', '✨ Perfil atualizado!');
 }
 
-// ── INVENTORY ──────────────────────────────
-function renderInventory() {
-  const inv = G.inventory || [];
-  renderInvGrid('inventory-grid', inv);
-  renderInvGrid('inv-weapons-grid', inv.filter(i => i.type === 'weapon' || i.type === 'shield' || i.type === 'armor' || i.type === 'helmet' || i.type === 'amulet'));
-  renderInvGrid('inv-armor-grid', inv.filter(i => i.type === 'armor' || i.type === 'shield' || i.type === 'helmet'));
-  renderInvGrid('inv-cons-grid', inv.filter(i => i.type === 'food' || i.type === 'potion'));
-  renderInvGrid('inv-mat-grid', inv.filter(i => i.type === 'material'));
-}
-
-function renderInvGrid(id, items) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!items.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">Vazio</div>'; return; }
-  el.innerHTML = items.map(item => {
-    const isEq = Object.values(G.equipped).includes(item.id);
-    return `<div class="inv-item item-rarity-${item.rarity||'common'} ${isEq?'equipped':''}" onclick="useItem('${item.id}')" title="${item.desc||''}">
-      <span class="item-icon">${item.icon}</span>
-      <div class="item-name">${item.name}</div>
-      ${item.qty > 1 ? `<div class="item-qty">x${item.qty}</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function useItem(itemId) {
-  const idx = G.inventory.findIndex(i => i.id === itemId);
-  if (idx < 0) return;
-  const item = G.inventory[idx];
-  if (item.type === 'food') {
-    G.hunger = Math.min(G.maxHunger, G.hunger + item.power);
-    G.energy = Math.min(100, Math.round(G.hunger));
-    removeFromInventory(itemId, 1);
-    addToFeed(`🍽️ Comeu ${item.name} (+${item.power} fome)`);
-    notify('success', `🍽️ +${item.power} Fome!`);
-  } else if (item.type === 'potion') {
-    if (item.id.includes('hp')) { G.hp = Math.min(G.maxHp, G.hp + item.power); notify('success', `+${item.power} HP`); }
-    else if (item.id.includes('mana')) { G.mana = Math.min(G.maxMana, G.mana + item.power); notify('success', `+${item.power} Mana`); }
-    else if (item.id.includes('stamina')) { G.stamina = Math.min(G.maxStamina, G.stamina + item.power); notify('success', `+${item.power} Stamina`); }
-    else if (item.id === 'pergaminho') { gainXP(item.power); notify('success', `+${item.power} XP!`); }
-    removeFromInventory(itemId, 1);
-    addToFeed(`🧪 Usou ${item.name}`);
-  } else if (['weapon','shield','armor','amulet','helmet'].includes(item.type)) {
-    const slot = item.type;
-    if (G.equipped[slot] === item.id) { G.equipped[slot] = null; notify('info', `${item.name} desequipado`); }
-    else { G.equipped[slot] = item.id; notify('success', `${item.name} equipado!`); }
-  }
-  saveGame(); renderInventory(); refreshDashboard();
-}
-
-function addToInventory(item, qty = 1) {
-  const existing = G.inventory.find(i => i.id === item.id);
-  if (existing) { existing.qty = (existing.qty || 1) + qty; }
-  else { G.inventory.push({ ...item, qty }); }
-  G.itemsCollected = (G.itemsCollected || 0) + qty;
-}
-
-function removeFromInventory(itemId, qty = 1) {
-  const idx = G.inventory.findIndex(i => i.id === itemId);
-  if (idx < 0) return;
-  G.inventory[idx].qty = (G.inventory[idx].qty || 1) - qty;
-  if (G.inventory[idx].qty <= 0) G.inventory.splice(idx, 1);
-}
 
 // ── BANK ───────────────────────────────────
 function pulseEl(id) {
@@ -5195,203 +4849,6 @@ function renderGallery() {
 }
 
 
-function equipAvatar(a) {
-  G.avatar = a;
-  saveGame(); updateHeader(); renderGallery();
-  notify('success', `Avatar ${a} equipado!`);
-}
-
-// ══════════════════════════════════════════
-//   LOJA DE MOLDURAS DE AVATAR (Galeria)
-// ══════════════════════════════════════════
-let frameShopCategory = 'todas';
-let previewedFrameId = null;
-
-function isFrameOwned(id) {
-  if (id === 'none') return true;
-  if (id.startsWith('lottie:')) return true;
-  const frame = AVATAR_FRAMES.find(f => f.id === id);
-  if (!frame) return false;
-  if (frame.reqAch) return (G.achievements || []).includes(frame.reqAch);
-  if (frame.seasonal) return frame.activeMonths.includes(new Date().getMonth());
-  if (frame.cost === 0) return true;
-  return (G.unlockedFrames || []).includes(id);
-}
-
-function renderFrameShopTabs() {
-  const el = document.getElementById('frame-shop-tabs');
-  if (!el) return;
-  el.innerHTML = FRAME_CATEGORIES.map(c => `<div class="frame-cat-tab ${frameShopCategory===c.id?'active':''}" onclick="setFrameShopCategory('${c.id}')">${c.name}</div>`).join('');
-}
-function setFrameShopCategory(cat) {
-  frameShopCategory = cat;
-  renderFrameShopTabs();
-  renderAvatarFrameShop();
-}
-
-async function renderAvatarFrameShop() {
-  const el = document.getElementById('avatar-frame-shop');
-  if (!el) return;
-  const search = (document.getElementById('frame-shop-search')?.value || '').trim().toLowerCase();
-  const lottieCat = await getLottieCatalog();
-  const lottieFrames = lottieCat.filter(l => l.category === 'avatar').map(l => ({ id: 'lottie:' + l.id, name: '✨ ' + l.name, cat: 'lottie', lottieUrl: l.url, url: l.url, kind: l.kind, cost: 0, minLevel: 1 }));
-  // As molduras antigas (CSS/tsParticles) saíram da loja de novas escolhas — só ficam
-  // "custom_image"/"ring_custom" (conteúdo real do próprio jogador) e as novas Lottie/vídeo.
-  // Quem já tinha uma moldura antiga equipada continua vendo ela na lista, como "clássica".
-  const equippedId = G.avatarFrame || 'none';
-  const realFrames = AVATAR_FRAMES.filter(f => f.customImage || f.customColor);
-  const legacyEquippedFrame = (equippedId !== 'none' && !equippedId.startsWith('lottie:') && !realFrames.some(f => f.id === equippedId))
-    ? AVATAR_FRAMES.filter(f => f.id === equippedId).map(f => ({ ...f, name: f.name + ' (clássica)' }))
-    : [];
-  let list = [...realFrames, ...lottieFrames, ...legacyEquippedFrame];
-  if (frameShopCategory !== 'todas') list = list.filter(f => f.cat === frameShopCategory);
-  if (search) list = list.filter(f => f.name.toLowerCase().includes(search));
-
-  if (!list.length) {
-    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:24px">Nenhuma moldura encontrada.</div>';
-    return;
-  }
-
-  el.innerHTML = list.map(frame => {
-    const owned = isFrameOwned(frame.id);
-    const equipped = (G.avatarFrame || 'none') === frame.id;
-    const meetsLevel = G.level >= (frame.minLevel || 1);
-    const canAfford = G.wallet >= frame.cost;
-
-    if (frame.lottieUrl) {
-      return `<div class="frame-shop-card">
-        <div class="avatar-frame-wrap frame-mini-wrap" style="position:relative;width:64px;height:64px;margin:0 auto 6px">
-          <div class="profile-avatar" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--bg3)">${AVATARS[0]}</div>
-          <div class="frame-svg-slot" style="position:absolute;inset:-15%">${renderAnimHtml(frame, 'width:130%;height:130%;border-radius:50%')}</div>
-        </div>
-        <div class="frame-shop-name" title="${escapeHtml(frame.name)}">${escapeHtml(frame.name)}</div>
-        ${equipped ? '<span class="badge badge-gold" style="width:100%;display:block">Equipada</span>' : `<button class="btn-sm btn-success" style="width:100%" onclick="equipOwnedFrame('${frame.id}')">Equipar</button>`}
-      </div>`;
-    }
-
-    if (frame.customColor) {
-      return `<div class="frame-shop-card">
-        <div class="avatar-frame-wrap frame-mini-wrap" id="mini-${frame.id}">
-          <div class="profile-avatar">${AVATARS[0]}</div>
-          <div class="frame-svg-slot"></div>
-        </div>
-        <div class="frame-shop-name" title="${escapeHtml(frame.name)}">${escapeHtml(frame.name)}</div>
-        <div class="frame-shop-price">Escolha qualquer cor</div>
-        <input type="color" value="${G.customRingColor || '#d4a017'}" oninput="setCustomRingColor(this.value)" style="width:100%;height:26px;border:none;border-radius:6px;cursor:pointer;margin-bottom:6px;background:none">
-        ${equipped ? '<span class="badge badge-gold" style="width:100%;display:block">Equipada</span>' : `<button class="btn-sm btn-success" style="width:100%" onclick="equipOwnedFrame('${frame.id}')">Equipar</button>`}
-      </div>`;
-    }
-
-    if (frame.customImage) {
-      return `<div class="frame-shop-card">
-        <div class="avatar-frame-wrap frame-mini-wrap" id="mini-${frame.id}">
-          <div class="profile-avatar">${AVATARS[0]}</div>
-          <div class="frame-svg-slot"></div>
-        </div>
-        <div class="frame-shop-name" title="${escapeHtml(frame.name)}">${escapeHtml(frame.name)}</div>
-        <div class="frame-shop-price">${G.customFrameImage ? 'Imagem carregada' : 'Envie uma imagem/GIF'}</div>
-        <input type="file" id="custom-frame-file-input" accept="image/*" style="display:none" onchange="handleCustomFrameImageSelect(event)">
-        <button class="btn-sm" style="width:100%;margin-bottom:6px" onclick="document.getElementById('custom-frame-file-input').click()">📁 Enviar Imagem/GIF</button>
-        ${equipped ? '<span class="badge badge-gold" style="width:100%;display:block">Equipada</span>' : `<button class="btn-sm btn-success" style="width:100%" ${G.customFrameImage?'':'disabled'} onclick="equipOwnedFrame('${frame.id}')">Equipar</button>`}
-      </div>`;
-    }
-
-    let actionBtn;
-    if (equipped) {
-      actionBtn = `<span class="badge badge-gold" style="width:100%;display:block">Equipada</span>`;
-    } else if (owned) {
-      actionBtn = `<button class="btn-sm btn-success" style="width:100%" onclick="equipOwnedFrame('${frame.id}')">Equipar</button>`;
-    } else if (frame.reqAch) {
-      const ach = ACHIEVEMENTS.find(a => a.id === frame.reqAch);
-      actionBtn = `<button class="btn-sm" style="width:100%" disabled title="Desbloqueie a conquista: ${ach ? escapeHtml(ach.name) : '?'}">🏆 ${ach ? escapeHtml(ach.icon + ' ' + ach.name) : 'Conquista'}</button>`;
-    } else if (frame.seasonal) {
-      const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-      const nextMonth = frame.activeMonths[0];
-      actionBtn = `<button class="btn-sm" style="width:100%" disabled title="Volta em ${MESES[nextMonth]}">🗓️ Fora de época</button>`;
-    } else if (!meetsLevel) {
-      actionBtn = `<button class="btn-sm" style="width:100%" disabled title="Requer Nível ${frame.minLevel}">🔒 Nv.${frame.minLevel}</button>`;
-    } else {
-      actionBtn = `<button class="btn-sm ${canAfford?'btn-primary':''}" style="width:100%" ${canAfford?'':'disabled'} onclick="buyAvatarFrame('${frame.id}')">🔒 ${frame.cost} Cry</button>`;
-    }
-    return `<div class="frame-shop-card">
-      <div class="avatar-frame-wrap frame-mini-wrap" id="mini-${frame.id}">
-        <div class="profile-avatar">${AVATARS[0]}</div>
-        <div class="frame-svg-slot"></div>
-      </div>
-      <div class="frame-shop-name" title="${escapeHtml(frame.name)}">${escapeHtml(frame.name)}</div>
-      <div class="frame-shop-price">${frame.cost === 0 ? 'Grátis' : frame.cost + ' Cry'}${frame.minLevel > 1 ? ' · Nv.' + frame.minLevel : ''}</div>
-      <div style="display:flex;gap:4px;margin-bottom:6px">
-        <button class="btn-sm" style="flex:1" onclick="previewAvatarFrame('${frame.id}')">👁️ Ver</button>
-      </div>
-      ${actionBtn}
-    </div>`;
-  }).join('');
-
-  // aplica os efeitos visuais reais em cada miniatura da grade (não é só ícone, é a moldura de verdade)
-  list.forEach(frame => {
-    const wrap = document.getElementById('mini-' + frame.id);
-    if (wrap) applyFrameToWrap(wrap, frame.id);
-  });
-  gsapStagger('.frame-shop-card', el);
-}
-
-function buyAvatarFrame(id) {
-  const frame = AVATAR_FRAMES.find(f => f.id === id);
-  if (!frame) return;
-  if (G.level < (frame.minLevel || 1)) return notify('error', `Requer Nível ${frame.minLevel}.`);
-  if (isFrameOwned(id)) return equipOwnedFrame(id);
-  if (G.wallet < frame.cost) return notify('error', 'Cry insuficiente para comprar esta moldura.');
-  G.wallet -= frame.cost;
-  G.unlockedFrames = G.unlockedFrames || [];
-  G.unlockedFrames.push(id);
-  applyAvatarFrame(id, true);
-  updateHeader();
-  addToFeed(`🎭 Desbloqueou a moldura "${frame.name}"!`);
-  notify('success', `${frame.name} comprada e equipada!`);
-  renderAvatarFrameShop();
-  closeFramePreview();
-}
-
-function equipOwnedFrame(id) {
-  applyAvatarFrame(id, true);
-  renderAvatarFrameShop();
-  if (id.startsWith('lottie:')) {
-    const l = (_lottieCatalogCache || []).find(x => x.id === id.slice(7));
-    notify('success', `${l ? '✨ ' + l.name : 'Moldura'} equipada!`);
-    closeFramePreview();
-    return;
-  }
-  const frame = AVATAR_FRAMES.find(f => f.id === id);
-  notify('success', `${frame ? frame.name : 'Moldura'} equipada!`);
-  closeFramePreview();
-}
-
-function previewAvatarFrame(id) {
-  previewedFrameId = id;
-  const isLottie = id.startsWith('lottie:');
-  const lEntry = isLottie ? (_lottieCatalogCache || []).find(l => l.id === id.slice(7)) : null;
-  const frame = isLottie ? { id, name: lEntry ? '✨ ' + lEntry.name : 'Lottie', cost: 0 } : (AVATAR_FRAMES.find(f => f.id === id) || { id: 'none', name: 'Nenhuma', cost: 0 });
-  const card = document.getElementById('frame-preview-card');
-  card.style.display = 'block';
-  document.getElementById('frame-preview-avatar').innerHTML = G.avatarPhoto ? `<img src="${G.avatarPhoto}" alt="Seu avatar">` : (G.avatar || '⚔️');
-  const owned = isFrameOwned(id);
-  document.getElementById('frame-preview-name').innerHTML = `${escapeHtml(frame.name)}${!owned ? ` <span style="color:var(--text3);font-size:12px">— ${frame.cost} Cry</span>` : ''}`;
-  applyFrameToWrap(document.getElementById('frame-preview-wrap'), id);
-  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function confirmEquipPreviewedFrame() {
-  if (!previewedFrameId) return;
-  if (!isFrameOwned(previewedFrameId)) { buyAvatarFrame(previewedFrameId); return; }
-  equipOwnedFrame(previewedFrameId);
-}
-
-function closeFramePreview() {
-  previewedFrameId = null;
-  const card = document.getElementById('frame-preview-card');
-  if (card) card.style.display = 'none';
-}
-
 // ── EVENTS ─────────────────────────────────
 function renderEvents() {
   const list = document.getElementById('events-list');
@@ -7054,16 +6511,6 @@ function quickSetBannerAnim(id) {
   notify('success', `✨ Animação de banner "${a.name}" aplicada!`);
 }
 
-function saveProfileLinks() {
-  G.profileLinks = G.profileLinks || {};
-  LINK_PLATFORMS.forEach(p => {
-    const input = document.getElementById('cfg-link-' + p.id);
-    if (input) G.profileLinks[p.id] = input.value.trim();
-  });
-  saveGame();
-  renderProfileLinks();
-  notify('success', '🔗 Links do perfil salvos!');
-}
 
 // ── @usuário único (regras iguais Instagram) ────────────────────────
 // 1–30 caracteres, letras minúsculas, números, ponto e underline;
@@ -7401,7 +6848,7 @@ async function renderFeedback() {
 }
 
 // ── XP / LEVEL ─────────────────────────────
-function gainXP(amount) {
+export function gainXP(amount) {
   let bonus = 1;
   if (activeEvent === 'xp') bonus = 2;
   if (G.married) bonus *= 1.1;
@@ -7488,7 +6935,7 @@ function stopTimers() {
 }
 
 // ── MODAL ──────────────────────────────────
-function showModal(title, body) {
+export function showModal(title, body) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-body').innerHTML = body;
   document.getElementById('modal-overlay').classList.add('open');
@@ -7498,7 +6945,7 @@ function closeModal(e) {
   if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
 }
 
-function closeModalDirect() {
+export function closeModalDirect() {
   document.getElementById('modal-overlay').classList.remove('open');
   G._tempAvatar = undefined;
 }
@@ -10103,7 +9550,7 @@ function closeMusicPlayer() {
 }
 
 // ── FEED ───────────────────────────────────
-function addToFeed(msg) {
+export function addToFeed(msg) {
   G.activityFeed = G.activityFeed || [];
   G.activityFeed.push(msg);
   if (G.activityFeed.length > 30) G.activityFeed = G.activityFeed.slice(-30);
