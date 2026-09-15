@@ -18,6 +18,7 @@ import { initGame_2048, renderGame_2048, g2048Spawn, g2048Slide, g2048Move } fro
 import { initGame_simon, renderGame_simon, simonStart, simonPlaySequence, simonPlayerClick } from './games/simon.js';
 import { initGame_xadrez, renderGame_xadrez, chessValidMove, chessClick } from './games/chess.js';
 import { initGame_damas, renderGame_damas, checkersValidMove, checkersClick } from './games/checkers.js';
+import { renderBannerAnimShop, previewBannerAnim, equipBannerAnim, confirmEquipPreviewedBanner, closeBannerPreview } from './ui/bannershop.js';
 import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
 import { GUILD_ROLE_LABELS, GUILD_ROLE_RANK, GUILD_PRIVACY_LABELS, GUILD_ACHIEVEMENTS_INFO, GUILD_PAGE_SIZE, GUILDS_DEFAULT, guildTagHtml } from './guild/constants.js';
 import { groupIconHtml, communityIconHtml, communityIconHtmlBig } from './social/helpers.js';
@@ -97,7 +98,7 @@ import { GAMES_LIST, BOT_DIFFICULTIES, TERMO_WORDS, FORCA_WORDS, HANGMAN_STAGES,
 // ═══════════════════════════════════════════
 
 // ── STATE ──────────────────────────────────
-let G = {}; // game state
+export let G = {}; // game state
 // id do usuário logado no Supabase, cacheado em loadGame()/saveGame() pra
 // não precisar de "await supabase.auth.getSession()" toda hora — usado
 // pelos recursos sociais reais (amigos, mensagens, PIX, PvP).
@@ -1707,8 +1708,8 @@ function mountAvatarParticles(wrap, presetKey) {
 // ── Animações Lottie (LottieFiles) — molduras de avatar e banners extras,
 //    gerenciadas pela administração. Identificadas por um id no formato
 //    "lottie:<uuid>" guardado no mesmo campo de avatar_frame/banner_anim.
-let _lottieCatalogCache = null;
-async function getLottieCatalog() {
+export let _lottieCatalogCache = null;
+export async function getLottieCatalog() {
   if (_lottieCatalogCache) return _lottieCatalogCache;
   try {
     const { data, error } = await supabase.from('lottie_animations').select('*').order('created_at');
@@ -1827,7 +1828,7 @@ function applyAvatarFrame(id, persist = true) {
 // ── ANIMAÇÃO DE BANNER: partículas reais via tsParticles (motor gratuito,
 //    o mesmo tipo de biblioteca usado em landing pages profissionais) ──
 let _bannerFxContainers = {};
-function mountBannerFx(fxSlotId, animId) {
+export function mountBannerFx(fxSlotId, animId) {
   const slot = document.getElementById(fxSlotId);
   if (!slot) return;
   const prev = _bannerFxContainers[fxSlotId];
@@ -1853,7 +1854,7 @@ function mountBannerFx(fxSlotId, animId) {
   if (typeof tsParticles === 'undefined') return; // sem CDN disponível — o slot fica só com o overlay CSS de fallback
   tsParticles.load(mountId, preset).then(container => { _bannerFxContainers[fxSlotId] = container; }).catch(() => {});
 }
-function applyBannerAnim(id, persist = true) {
+export function applyBannerAnim(id, persist = true) {
   const banner = document.getElementById('profile-banner');
   if (banner) {
     BANNER_ANIMS.forEach(a => banner.classList.remove('anim-' + a.id));
@@ -2094,7 +2095,7 @@ function gsapPanelEnter(el) {
   if (!el || typeof gsap === 'undefined') return;
   gsap.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' });
 }
-function gsapStagger(selector, root) {
+export function gsapStagger(selector, root) {
   if (typeof gsap === 'undefined') return;
   const items = (root || document).querySelectorAll(selector);
   if (!items.length) return;
@@ -5193,76 +5194,6 @@ function renderGallery() {
   if (totalBadge) totalBadge.textContent = AVATAR_FRAMES.length + ' disponíveis';
 }
 
-let previewedBannerId = null;
-async function renderBannerAnimShop() {
-  const el = document.getElementById('banner-anim-shop');
-  if (!el) return;
-  const current = G.bannerAnim || 'none';
-  const lottieCat = await getLottieCatalog();
-  const lottieList = lottieCat.filter(l => l.category === 'banner').map(l => ({ id: 'lottie:' + l.id, name: '✨ ' + l.name, lottieUrl: l.url }));
-  // As animações antigas (feitas só com CSS/tsParticles) saíram da loja — só oferecemos
-  // animações reais (vídeo/Lottie) daqui pra frente. Se o jogador já tinha uma das antigas
-  // equipada, ela continua aparecendo (marcada como "clássica") pra não sumir do nada.
-  const legacyEquipped = (current !== 'none' && !current.startsWith('lottie:'))
-    ? BANNER_ANIMS.filter(a => a.id === current).map(a => ({ ...a, name: a.name + ' (clássica)' }))
-    : [];
-  const list = [{ id: 'none', name: 'Nenhuma' }, ...lottieList, ...legacyEquipped];
-  el.innerHTML = list.map(a => {
-    const equipped = current === a.id;
-    return `<div class="frame-shop-card">
-      <div class="profile-banner" id="banner-mini-${a.id.replace(':','_')}" style="height:44px;border-radius:8px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--bg3),var(--bg4));margin-bottom:6px">
-        <div class="banner-fx-slot" id="banner-mini-fx-${a.id.replace(':','_')}"></div>
-      </div>
-      <div class="frame-shop-name" title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</div>
-      <div style="display:flex;gap:4px;margin-bottom:6px">
-        <button class="btn-sm" style="flex:1" onclick="previewBannerAnim('${a.id}')">👁️ Ver</button>
-      </div>
-      ${equipped ? '<span class="badge badge-gold" style="width:100%;display:block">Equipada</span>' : `<button class="btn-sm btn-success" style="width:100%" onclick="equipBannerAnim('${a.id}')">Equipar</button>`}
-    </div>`;
-  }).join('');
-  list.forEach(a => {
-    const banner = document.getElementById('banner-mini-' + a.id.replace(':','_'));
-    if (banner && a.id !== 'none' && !a.id.startsWith('lottie:')) banner.classList.add('anim-' + a.id);
-    mountBannerFx('banner-mini-fx-' + a.id.replace(':','_'), a.id);
-  });
-  gsapStagger('.frame-shop-card', el);
-}
-function previewBannerAnim(id) {
-  previewedBannerId = id;
-  const isLottie = id.startsWith('lottie:');
-  const lEntry = isLottie ? (_lottieCatalogCache || []).find(l => l.id === id.slice(7)) : null;
-  const anim = isLottie ? { id, name: lEntry ? '✨ ' + lEntry.name : 'Lottie' } : (BANNER_ANIMS.find(a => a.id === id) || { id: 'none', name: 'Nenhuma' });
-  const card = document.getElementById('banner-preview-card');
-  card.style.display = 'block';
-  const box = document.getElementById('banner-preview-box');
-  BANNER_ANIMS.forEach(a => box.classList.remove('anim-' + a.id));
-  if (id !== 'none' && !isLottie) box.classList.add('anim-' + id);
-  mountBannerFx('banner-preview-fx', id);
-  document.getElementById('banner-preview-name').textContent = anim.name;
-  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-function equipBannerAnim(id) {
-  applyBannerAnim(id, true);
-  renderBannerAnimShop();
-  if (id.startsWith('lottie:')) {
-    const l = (_lottieCatalogCache || []).find(x => x.id === id.slice(7));
-    notify('success', `✨ ${l ? l.name : 'Animação'} aplicada ao banner!`);
-    closeBannerPreview();
-    return;
-  }
-  const anim = BANNER_ANIMS.find(a => a.id === id);
-  notify('success', `${anim ? anim.name : 'Nenhuma animação'} aplicada ao banner!`);
-  closeBannerPreview();
-}
-function confirmEquipPreviewedBanner() {
-  if (previewedBannerId === null) return;
-  equipBannerAnim(previewedBannerId);
-}
-function closeBannerPreview() {
-  previewedBannerId = null;
-  const card = document.getElementById('banner-preview-card');
-  if (card) card.style.display = 'none';
-}
 
 function equipAvatar(a) {
   G.avatar = a;
