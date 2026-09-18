@@ -19,7 +19,7 @@ import { initGame_simon, renderGame_simon, simonStart, simonPlaySequence, simonP
 import { initGame_xadrez, renderGame_xadrez, chessValidMove, chessClick } from './games/chess.js';
 import { initGame_damas, renderGame_damas, checkersValidMove, checkersClick } from './games/checkers.js';
 import { renderBannerAnimShop, previewBannerAnim, equipBannerAnim, confirmEquipPreviewedBanner, closeBannerPreview } from './ui/bannershop.js';
-import { equipAvatar, isFrameOwned, renderFrameShopTabs, setFrameShopCategory, renderAvatarFrameShop, buyAvatarFrame, equipOwnedFrame, previewAvatarFrame, confirmEquipPreviewedFrame, closeFramePreview } from './ui/frameshop.js';
+import { equipAvatar, isFrameOwned, renderFrameShopTabs, setFrameShopCategory, renderAvatarFrameShop, buyAvatarFrame, equipOwnedFrame, previewAvatarFrame, confirmEquipPreviewedFrame, closeFramePreview, previewedFrameId } from './ui/frameshop.js';
 import { getCurrentBannerCss, openBannerVideoModal, saveBannerVideoUrl, handleBannerVideoFileSelect, removeBannerVideo, openBannerAdjustModal, updateBannerAdjustPreview, saveBannerAdjust } from './ui/bannersettings.js';
 import { renderProfileLinks, applyCustomBgImage, removeCustomBgImage, handleBgImageFileSelect, saveProfileLinks } from './ui/profilecustomization.js';
 import { initThemeLottie, syncOtherThemeWidgets, persistThemeSilently, applyTheme, toggleTheme, toggleReduceMotion, toggleCompactMode, applyInterfacePrefs, setTheme, hexToHsl, applyAccentColor, applyBackgroundPalette, applyFont } from './ui/theme.js';
@@ -29,7 +29,7 @@ import { renderShop, buyItem, buyQuick, sellItem } from './economy/shop.js';
 import { renderHouses, buyHouse, rentHouse, sellHouse } from './economy/houses.js';
 import { renderCompanies, buyCompany, sellCompany } from './economy/companies.js';
 import { renderJobs, applyJob, quitJob, workShift, updateWorkCooldown } from './economy/jobs.js';
-import { battleCooldownRemaining, updateBattleCooldown, showBattleResultOverlay, spawnFloatingText, impactFlash, shakeArena, startBattle } from './rpg/battle.js';
+import { battleInProgress, battleCooldownRemaining, updateBattleCooldown, showBattleResultOverlay, spawnFloatingText, impactFlash, shakeArena, startBattle } from './rpg/battle.js';
 import { startPvP, respondPvpChallenge, claimCompletedPvpChallenges, renderPvpChallenges } from './rpg/pvp.js';
 import { autoDetectDeviceView, setDeviceView, toggleMobileSidebar } from './ui/deviceview.js';
 import { svgIcon, zoneAt, pvpPower, encounterChanceFor, monsterForDanger } from './rpg/helpers.js';
@@ -4124,7 +4124,7 @@ async function admRejectCrystal(purchaseId) {
   } catch (e) { notify('error', 'Erro: ' + (e.message || 'não foi possível rejeitar')); }
 }
 
-function renderGallery() {
+export function renderGallery() {
   const gallery = document.getElementById('avatar-gallery');
   gallery.innerHTML = AVATARS.map(a => `
     <div onclick="equipAvatar('${a}')" style="text-align:center;font-size:28px;cursor:pointer;padding:10px;border-radius:6px;border:2px solid ${G.avatar===a?'var(--gold)':'var(--border)'};background:var(--bg3);transition:all 0.2s" onmouseover="this.style.borderColor='var(--gold2)'" onmouseout="this.style.borderColor='${G.avatar===a?'var(--gold)':'var(--border)'}'">
