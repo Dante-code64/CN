@@ -8,8 +8,8 @@
 import { AVATAR_FRAMES, FRAME_CATEGORIES, ACHIEVEMENTS, AVATARS } from '../rpg/data.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import {
-  G, getLottieCatalog, _lottieCatalogCache, gsapStagger, notify,
-  renderAnimHtml, applyFrameToWrap, applyAvatarFrame, updateHeader, addToFeed
+  G, getLottieCatalog, _lottieCatalogCache, gsapStagger, notify, saveGame,
+  renderAnimHtml, applyFrameToWrap, applyAvatarFrame, updateHeader, addToFeed, renderGallery
 } from '../main.js';
 
 export function equipAvatar(a) {
@@ -22,7 +22,7 @@ export function equipAvatar(a) {
 //   LOJA DE MOLDURAS DE AVATAR (Galeria)
 // ══════════════════════════════════════════
 let frameShopCategory = 'todas';
-let previewedFrameId = null;
+export let previewedFrameId = null;
 
 export function isFrameOwned(id) {
   if (id === 'none') return true;
@@ -208,4 +208,3 @@ export function closeFramePreview() {
   const card = document.getElementById('frame-preview-card');
   if (card) card.style.display = 'none';
 }
-
