@@ -2,10 +2,10 @@
 // Sistema de batalha PvE (contra monstros): cooldown, efeitos visuais
 // (textos flutuantes, flash de impacto, tremida de tela) e a luta em si.
 
-import { MONSTERS, SHOP_ITEMS } from './data.js';
+import { MONSTERS, SHOP_ITEMS, BATTLE_COOLDOWN } from './data.js';
 import { sleep, createDiceElement } from '../utils/helpers.js';
 import { addBankHistory } from '../economy/bank.js';
-import { G, notify, celebrate, rollDiceVisual, updateHeader, addToFeed, saveGame, refreshDashboard, gainXP, updateQuestProgress, sysLog } from '../main.js';
+import { G, notify, celebrate, rollDiceVisual, updateHeader, addToFeed, saveGame, refreshDashboard, gainXP, updateQuestProgress, sysLog, activeEvent } from '../main.js';
 
 export let battleInProgress = false;
 export function battleCooldownRemaining() {
