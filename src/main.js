@@ -1014,7 +1014,9 @@ async function loadGame() {
   G.bannerZoom = G.bannerZoom || 100;
   G.characterSheet = G.characterSheet || { customName:'', customClass:'', appearance:'', backstory:'', skills:[] };
   applyTheme(G.theme);
-  setTimeout(() => initThemeLottie('theme-toggle-lottie'), 300);
+  // O toggle de tema do cabeçalho foi removido -- agora só existe na tela
+  // de Configurações (o initThemeLottie('theme-toggle-lottie-cfg') abaixo
+  // continua cuidando dele).
   applyInterfacePrefs();
   setDeviceView(autoDetectDeviceView());
   if (G.accent) applyAccentColor(G.accent, false);
