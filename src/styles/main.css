@@ -1,4 +1,4 @@
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Nunito:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600;700&family=Roboto+Slab:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Nunito:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600;700&family=Roboto+Slab:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
 
   :root {
     /* ── Crydan Design System 2.0 — Dark Digital World ────────────────
@@ -2010,8 +2010,15 @@ body.theme-light .cr-vignette {
 @media (prefers-reduced-motion: reduce) {
   .cr-embers span { animation: none; opacity: 0; }
 }
-#app, #admin-header, #admin-body, #header, #main, #sidebar, #admin-sidebar, .auth-screen, #register-screen {
+#app, #admin-body, #main, #sidebar, #admin-sidebar, .auth-screen, #register-screen {
   position: relative; z-index: 1;
+}
+/* O cabeçalho precisa ficar numa camada acima do conteúdo principal --
+   senão qualquer menu suspenso dele (como o de notificações) fica preso
+   "atrás" da página, mesmo com z-index alto, porque os dois eram irmãos
+   com a mesma prioridade e o conteúdo vem depois no HTML. */
+#header, #admin-header {
+  position: relative; z-index: 50;
 }
 
 /* ── Tipografia com relevo — "capa de livro épico" ─────────────────────── */
